@@ -11,7 +11,7 @@ const {
   noindex = false,
   structuredData
 } = Astro.props;
-const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.com';
+const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = canonical || new URL(Astro.url.pathname, site).toString();
 const imageUrl = image.startsWith('http') ? image : new URL(image, site).toString();
 ---
