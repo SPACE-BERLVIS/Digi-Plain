@@ -2,7 +2,7 @@
 import BaseLayout from './BaseLayout.astro';
 const { article } = Astro.props;
 const d = article.data;
-const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.com';
+const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
 const schema = {
   '@context': 'https://schema.org',
