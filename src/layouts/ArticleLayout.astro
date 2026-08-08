@@ -96,10 +96,18 @@ const schema = {
 
     <aside class="article-sidebar">
       {toc.length > 0 && (
-        <nav class="toc" aria-label="On this page">
-          <div class="sidebar-label">On this page</div>
-          {toc.map((heading: { slug: string; text: string }) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
-        </nav>
+        <>
+          <nav class="toc toc-desktop" aria-label="On this page">
+            <div class="sidebar-label">On this page</div>
+            {toc.map((heading: { slug: string; text: string }) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
+          </nav>
+          <details class="toc-mobile">
+            <summary><span>Jump to section</span><span aria-hidden="true">+</span></summary>
+            <nav aria-label="Jump to section">
+              {toc.map((heading: { slug: string; text: string }) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
+            </nav>
+          </details>
+        </>
       )}
       <div class="sidebar-box">
         <div class="sidebar-label">More on DigiPlain</div>
