@@ -1,17 +1,25 @@
 ---
-const { article } = Astro.props;
+const { article, variant = 'standard' } = Astro.props;
 const d = article.data;
 const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
 const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
+const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;
+const readingMinutes = Math.max(1, Math.ceil(words / 220));
 ---
-<a class="card article-card" href={`/${d.category}/${d.slug}/`}>
+<a class:list={['card', 'article-card', `article-card--${variant}`]} href={`/${d.category}/${d.slug}/`}>
   <div class="article-card-image">
     <img src={coverImage} alt={coverImageAlt} loading="lazy" />
   </div>
   <div class="article-card-content">
-    <div class="meta">{d.topic}</div>
+    <div class="article-card-kicker">
+      <span class="category-pill">{d.category}</span>
+      <span>{d.topic}</span>
+    </div>
     <h3>{d.title}</h3>
     <p>{d.description}</p>
-    <time datetime={d.updatedAt.toISOString()}>Updated {d.updatedAt.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' })}</time>
+    <div class="article-card-footer">
+      <span>{readingMinutes} min read</span>
+      <time datetime={d.updatedAt.toISOString()}>Updated {d.updatedAt.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' })}</time>
+    </div>
   </div>
 </a>
