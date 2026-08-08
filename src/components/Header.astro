@@ -10,11 +10,36 @@ const nav = [
 <header class="site-header">
   <div class="container nav">
     <a class="brand" href="/" aria-label="DigiPlain home">Digi<b>Plain</b>.</a>
+
     <nav class="nav-links" aria-label="Primary navigation">
       {nav.map(([label, href]) => <a href={href}>{label}</a>)}
     </nav>
+
     <form class="nav-search" action="/search/" method="get" role="search">
       <input type="search" name="q" placeholder="Search DigiPlain" aria-label="Search DigiPlain" />
     </form>
+
+    <a class="nav-search-link" href="/search/" aria-label="Search DigiPlain">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="11" cy="11" r="6.5"></circle>
+        <path d="m16 16 4 4"></path>
+      </svg>
+    </a>
+
+    <details class="mobile-menu">
+      <summary aria-label="Open navigation">
+        <span class="menu-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+      </summary>
+      <div class="mobile-panel">
+        <form class="mobile-search" action="/search/" method="get" role="search">
+          <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search DigiPlain" />
+          <button type="submit">Search</button>
+        </form>
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+          {nav.map(([label, href]) => <a href={href}><span>{label}</span><span aria-hidden="true">↗</span></a>)}
+        </nav>
+        <a class="mobile-editorial" href="/editorial-policy/">How DigiPlain verifies guides</a>
+      </div>
+    </details>
   </div>
 </header>
