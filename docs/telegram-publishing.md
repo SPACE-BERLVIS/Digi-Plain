@@ -43,7 +43,35 @@ Required repository permission:
 
 The publisher does not need Issues, Pull Requests, Administration, Actions or other repository permissions.
 
-## 3. Deploy the Worker/site
+## 3. Configure the real production URL
+
+Do not deploy until the final production hostname is owned and ready.
+
+Set a GitHub Actions repository variable named:
+
+```text
+SITE_URL
+```
+
+Example:
+
+```text
+https://example.com
+```
+
+The Astro build uses this value for canonical tags, RSS, sitemap URLs and structured data. Without it, CI builds against the deliberately non-routable `https://digiplain.invalid` placeholder and skips production deployment.
+
+For a manual deployment, export the same value in the shell before building and deploying.
+
+PowerShell:
+
+```powershell
+$env:SITE_URL="https://example.com"
+npm run build
+npm run deploy
+```
+
+## 4. Deploy the Worker/site
 
 The Cloudflare Worker name is `digiplain`.
 
@@ -57,9 +85,9 @@ npm run deploy:dry-run
 npm run deploy
 ```
 
-The repo pins Wrangler so development, CI and production use the same deployment toolchain.
+The repo pins Wrangler so development, CI and production use the same deployment toolchain. `npm run deploy` also verifies that `SITE_URL` is a real HTTPS hostname before uploading anything.
 
-## 4. Add Worker secrets
+## 5. Add Worker secrets
 
 Set these with Wrangler or in the Cloudflare dashboard:
 
@@ -80,7 +108,7 @@ GITHUB_REPO=Digi-Plain
 GITHUB_BRANCH=main
 ```
 
-## 5. Set the Telegram webhook
+## 6. Set the Telegram webhook
 
 After the Worker has a public HTTPS URL, point Telegram to:
 
@@ -99,7 +127,7 @@ npm run telegram:set-webhook
 
 The setup script subscribes to normal messages, edited messages, channel posts and edited channel posts.
 
-## 6. Publish an article
+## 7. Publish an article
 
 Send a `.md` file with this shape:
 
@@ -208,6 +236,7 @@ The publisher is intentionally fail-closed:
 - SVG is not accepted through Telegram publishing.
 - The GitHub token can be scoped only to DigiPlain content writes.
 - Real secrets are never stored in the repository.
+- Production deployment requires an explicit real `SITE_URL`.
 
 ## Automatic deployment
 
@@ -219,14 +248,15 @@ Astro production build
 Cloudflare Worker dry-run bundle
 ```
 
-If these GitHub repository secrets exist, a successful push to `main` also deploys to Cloudflare:
+A successful push to `main` deploys only when all three GitHub values are configured:
 
 ```text
-CLOUDFLARE_API_TOKEN
-CLOUDFLARE_ACCOUNT_ID
+Repository variable: SITE_URL
+Repository secret: CLOUDFLARE_API_TOKEN
+Repository secret: CLOUDFLARE_ACCOUNT_ID
 ```
 
-If they are missing, CI still validates normally and skips deployment instead of failing.
+If any are missing, CI still validates normally and skips deployment instead of publishing an incorrectly configured site.
 
 That means a completed production publishing flow is:
 
@@ -234,7 +264,7 @@ That means a completed production publishing flow is:
 Send Markdown or screenshot in Telegram
 -> Worker validates it
 -> Worker commits it to GitHub
--> GitHub Actions validates and builds Astro
+-> GitHub Actions validates and builds Astro with the real SITE_URL
 -> GitHub Actions validates the Worker bundle
 -> GitHub Actions deploys the new static site to Cloudflare
 ```
