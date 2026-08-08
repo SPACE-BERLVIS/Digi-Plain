@@ -33,7 +33,7 @@ jobs:
         run: npm run build
 
       - name: Validate Cloudflare Worker bundle
-        run: npx wrangler@latest deploy --dry-run
+        run: npm run deploy:dry-run
 
       - name: Check Cloudflare deployment configuration
         id: cloudflare
@@ -53,7 +53,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler@latest deploy
+        run: npm run deploy
 
       - name: Deployment not configured
         if: github.event_name == 'push' && steps.cloudflare.outputs.enabled == 'false'
