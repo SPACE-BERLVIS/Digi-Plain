@@ -8,8 +8,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "npx wrangler@latest deploy",
-    "publisher:dev": "npm run build && npx wrangler@latest dev",
+    "deploy": "wrangler deploy",
+    "deploy:dry-run": "wrangler deploy --dry-run",
+    "publisher:dev": "npm run build && wrangler dev",
     "telegram:inspect": "node scripts/telegram-inspect-updates.mjs",
     "telegram:set-webhook": "node scripts/telegram-set-webhook.mjs"
   },
@@ -18,6 +19,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "4.114.0"
   }
 }
