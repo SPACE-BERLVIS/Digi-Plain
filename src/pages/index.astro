@@ -2,16 +2,47 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
-const articles = (await getCollection('articles', ({ data }) => data.status === 'published')).sort((a,b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
-const featured = articles.filter(a => a.data.featured).slice(0, 6);
-const recent = articles.slice(0, 6);
-const topics = [
-  { name:'Phones', path:'/phones/', copy:'Android, Infinix, Tecno, iPhone and practical device fixes.', label:'Device help' },
-  { name:'Apps', path:'/apps/', copy:'WhatsApp, TikTok, Instagram, banking apps and everyday software.', label:'App guides' },
-  { name:'Internet', path:'/internet/', copy:'MTN, Airtel, mobile data, Wi-Fi, hotspots and connectivity.', label:'Stay connected' },
-  { name:'Nigeria', path:'/nigeria/', copy:'Digital processes and online services Nigerians repeatedly need.', label:'Local guides' },
-  { name:'Explained', path:'/explained/', copy:'Internet terms, slang and confusing digital ideas made clear.', label:'Understand it' }
+
+const articles = (await getCollection('articles', ({ data }) => data.status === 'published'))
+  .sort((a, b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
+
+const featured = articles.filter((article) => article.data.featured);
+const lead = featured[0] || articles[0];
+const secondaryPool = [
+  ...featured.slice(1),
+  ...articles.filter((article) => article.data.slug !== lead?.data.slug),
 ];
+const secondary = Array.from(
+  new Map(secondaryPool.map((article) => [article.data.slug, article])).values(),
+).slice(0, 3);
+
+const excludedSlugs = new Set<string>();
+if (lead) excludedSlugs.add(lead.data.slug);
+secondary.forEach((article) => excludedSlugs.add(article.data.slug));
+const recent = articles.filter((article) => !excludedSlugs.has(article.data.slug)).slice(0, 6);
+
+const topics = [
+  { name:'Phones', path:'/phones/', copy:'Device fixes and settings', label:'01', tone:'phones' },
+  { name:'Apps', path:'/apps/', copy:'Everyday software guides', label:'02', tone:'apps' },
+  { name:'Internet', path:'/internet/', copy:'Data, Wi-Fi and networks', label:'03', tone:'internet' },
+  { name:'Nigeria', path:'/nigeria/', copy:'Local digital processes', label:'04', tone:'nigeria' },
+  { name:'Explained', path:'/explained/', copy:'Confusing ideas made clear', label:'05', tone:'explained' },
+];
+
+const searchExamples = [
+  ['MTN data balance', 'MTN data balance'],
+  ['WhatsApp not downloading', 'WhatsApp not downloading'],
+  ['Phone storage full', 'phone storage full'],
+];
+
+const readMinutes = (article: typeof articles[number]) => {
+  const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(words / 220));
+};
+
+const leadCover = lead ? lead.data.featuredImage || `/covers/${lead.data.slug}.svg` : '';
+const leadCoverAlt = lead ? lead.data.featuredImageAlt || `DigiPlain cover for ${lead.data.title}` : '';
+
 const orgSchema = {
   '@context':'https://schema.org',
   '@type':'Organization',
@@ -21,61 +52,94 @@ const orgSchema = {
 };
 ---
 <BaseLayout structuredData={orgSchema}>
-  <section class="hero">
+  <section class="hero hero-editorial">
     <div class="container hero-inner">
-      <div>
+      <div class="hero-main">
         <div class="eyebrow">Digital life, made simple</div>
         <h1>Find the answer.<br/><span>Get on with your day.</span></h1>
-        <p class="hero-copy">Clear, practical answers for the phones, apps, networks and online services you use every day. Written for people, not search engines.</p>
+        <p class="hero-copy">Clear, practical answers for the phones, apps, networks and online services you use every day. Written to solve the problem before wasting your time.</p>
         <form class="hero-search" action="/search/" method="get" role="search">
           <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search DigiPlain" />
           <button type="submit">Search guides</button>
         </form>
+        <div class="search-examples" aria-label="Popular searches">
+          <span>Try:</span>
+          {searchExamples.map(([label, query]) => <a href={`/search/?q=${encodeURIComponent(query)}`}>{label}</a>)}
+        </div>
       </div>
       <aside class="hero-note">
-        <span class="eyebrow">Our standard</span>
+        <span class="eyebrow">The DigiPlain standard</span>
         <strong>Answer first.</strong>
-        <p class="muted">No long introductions before the solution. Fast-changing guides carry an updated or verified date so you can see how fresh they are.</p>
+        <p class="muted">No long introductions before the solution. Changing guides show when they were updated or verified.</p>
+        <a class="text-link" href="/editorial-policy/">How we verify guides <span aria-hidden="true">↗</span></a>
       </aside>
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="section-head">
-        <div><span class="eyebrow">Browse by topic</span><h2>Start with what you use.</h2></div>
-        <p class="muted">DigiPlain is organized around real tasks, not tech-industry jargon.</p>
-      </div>
-      <div class="grid three">
-        {topics.map((topic) => (
-          <a class="card topic-card" href={topic.path}>
-            <div><span class="eyebrow">{topic.label}</span><h3 style="font-size:1.7rem;margin-top:12px">{topic.name}</h3><p class="muted" style="margin-top:12px">{topic.copy}</p></div>
-            <span class="arrow">↗</span>
+  <section class="topic-strip-section" aria-label="Browse DigiPlain categories">
+    <div class="container topic-strip">
+      {topics.map((topic) => (
+        <a class:list={['topic-strip-item', `topic-strip-item--${topic.tone}`]} href={topic.path}>
+          <span class="topic-index">{topic.label}</span>
+          <span class="topic-strip-copy"><strong>{topic.name}</strong><small>{topic.copy}</small></span>
+          <span class="topic-arrow" aria-hidden="true">↗</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  {lead && (
+    <section class="section editorial-section">
+      <div class="container">
+        <div class="section-head section-head-rule">
+          <div><span class="eyebrow">The front page</span><h2>Useful right now.</h2></div>
+          <p class="muted">The most useful guide leads. The rest of the page behaves like an editorial desk, not an endless wall of identical cards.</p>
+        </div>
+
+        <div class="magazine-grid">
+          <a class="lead-story" href={`/${lead.data.category}/${lead.data.slug}/`}>
+            <div class="lead-story-image">
+              <img src={leadCover} alt={leadCoverAlt} loading="eager" fetchpriority="high" />
+            </div>
+            <div class="lead-story-copy">
+              <div class="story-kicker"><span class="category-pill">{lead.data.category}</span><span>{lead.data.topic}</span></div>
+              <h2>{lead.data.title}</h2>
+              <p>{lead.data.description}</p>
+              <div class="story-meta"><span>{readMinutes(lead)} min read</span><span>Updated {lead.data.updatedAt.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' })}</span></div>
+            </div>
           </a>
-        ))}
+
+          <div class="magazine-stack">
+            {secondary.map((article) => <ArticleCard article={article} variant="compact" />)}
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
-  {featured.length > 0 && <section class="section" style="border-top:1px solid var(--line)">
-    <div class="container">
-      <div class="section-head"><div><span class="eyebrow">Start here</span><h2>Useful right now.</h2></div></div>
-      <div class="grid three">{featured.map(article => <ArticleCard article={article} />)}</div>
-    </div>
-  </section>}
+  {recent.length > 0 && (
+    <section class="section latest-section">
+      <div class="container">
+        <div class="section-head section-head-rule">
+          <div><span class="eyebrow">Recently updated</span><h2>Fresh answers.</h2></div>
+          <a class="button secondary" href="/search/">View all guides</a>
+        </div>
+        <div class="latest-grid">
+          {recent.map((article) => <ArticleCard article={article} variant="row" />)}
+        </div>
+      </div>
+    </section>
+  )}
 
-  <section class="section" style="border-top:1px solid var(--line)">
-    <div class="container">
-      <div class="section-head"><div><span class="eyebrow">Recently updated</span><h2>Fresh answers.</h2></div><a class="button secondary" href="/search/">View all guides</a></div>
-      <div class="grid three">{recent.map(article => <ArticleCard article={article} />)}</div>
-    </div>
-  </section>
-
-  <section class="section" style="border-top:1px solid var(--line)">
-    <div class="container">
-      <div class="card" style="padding:clamp(28px,6vw,64px);display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center">
-        <div><span class="eyebrow">Why DigiPlain exists</span><h2 style="margin-top:14px">The internet has enough content. It needs clearer answers.</h2></div>
-        <div><p class="muted">We focus on questions people actually type when something is confusing, broken or unfamiliar. Our guides prioritize the direct answer, exact steps, troubleshooting, and sources when a process depends on an official service.</p><a class="button" href="/editorial-policy/">How we publish</a></div>
+  <section class="section manifesto-section">
+    <div class="container manifesto-grid">
+      <div>
+        <span class="eyebrow">Why DigiPlain exists</span>
+        <h2>The internet has enough content. It needs clearer answers.</h2>
+      </div>
+      <div class="manifesto-copy">
+        <p>We focus on questions people actually type when something is confusing, broken or unfamiliar. Guides prioritize the direct answer, exact steps, troubleshooting and official sources when a process can change.</p>
+        <a class="button" href="/editorial-policy/">How we publish</a>
       </div>
     </div>
   </section>
