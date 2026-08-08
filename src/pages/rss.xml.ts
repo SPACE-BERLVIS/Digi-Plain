@@ -1,8 +1,9 @@
+import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
 
 const escapeXml = (s: string) => s.replace(/[<>&'\"]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', "'":'&apos;', '"':'&quot;' }[c] || c));
 
-export async function GET({ site }) {
+export async function GET({ site }: APIContext) {
   const base = site?.toString().replace(/\/$/, '') || 'https://digiplain.com';
   const articles = (await getCollection('articles', ({ data }) => data.status === 'published')).sort((a,b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
   const items = articles.map(({ data }) => `<item><title>${escapeXml(data.title)}</title><link>${base}/${data.category}/${data.slug}/</link><guid>${base}/${data.category}/${data.slug}/</guid><description>${escapeXml(data.description)}</description><pubDate>${data.publishedAt.toUTCString()}</pubDate></item>`).join('');
