@@ -1,7 +1,9 @@
 import { defineConfig } from 'astro/config';
 
+const site = process.env.SITE_URL || 'https://digiplain.invalid';
+
 export default defineConfig({
-  site: process.env.SITE_URL || 'https://digiplain.com',
+  site,
   output: 'static',
   trailingSlash: 'always',
   compressHTML: true,
