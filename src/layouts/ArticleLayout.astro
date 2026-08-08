@@ -4,7 +4,9 @@ const { article } = Astro.props;
 const d = article.data;
 const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
-const featuredImageUrl = d.featuredImage ? new URL(d.featuredImage, site).toString() : undefined;
+const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
+const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
+const featuredImageUrl = new URL(coverImage, site).toString();
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -13,7 +15,7 @@ const schema = {
   datePublished: d.publishedAt.toISOString(),
   dateModified: d.updatedAt.toISOString(),
   mainEntityOfPage: url,
-  ...(featuredImageUrl ? { image: [featuredImageUrl] } : {}),
+  image: [featuredImageUrl],
   author: { '@type': 'Organization', name: d.author },
   publisher: { '@type': 'Organization', name: 'DigiPlain', url: site }
 };
@@ -22,8 +24,8 @@ const schema = {
   title={`${d.title} | DigiPlain`}
   description={d.description}
   canonical={url}
-  image={d.featuredImage}
-  imageAlt={d.featuredImageAlt || d.title}
+  image={coverImage}
+  imageAlt={coverImageAlt}
   type="article"
   structuredData={schema}
 >
@@ -39,11 +41,9 @@ const schema = {
       {d.verifiedAt && <span>Verified {d.verifiedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>}
     </div>
   </header>
-  {d.featuredImage && (
-    <figure class="article-featured-image">
-      <img src={d.featuredImage} alt={d.featuredImageAlt || d.title} loading="eager" fetchpriority="high" />
-    </figure>
-  )}
+  <figure class="article-featured-image">
+    <img src={coverImage} alt={coverImageAlt} loading="eager" fetchpriority="high" />
+  </figure>
   <div class="article-shell">
     <article class="article-body">
       <slot />
