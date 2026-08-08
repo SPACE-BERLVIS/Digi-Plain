@@ -1,17 +1,18 @@
 # Telegram publishing
 
-DigiPlain can publish Markdown without a database.
+DigiPlain can publish Markdown and article screenshots without a database.
 
 Flow:
 
 ```text
-Telegram -> Cloudflare Worker -> GitHub Markdown -> GitHub Actions -> Cloudflare
+Telegram -> Cloudflare Worker -> GitHub Markdown/media -> GitHub Actions -> Cloudflare
 ```
 
-The Worker accepts either:
+The Worker accepts:
 
-1. a `.md` Telegram document; or
-2. pasted Markdown that begins with YAML frontmatter.
+1. a `.md` Telegram document;
+2. pasted Markdown that begins with YAML frontmatter; or
+3. PNG, JPG, WEBP, GIF and AVIF images sent as Telegram documents.
 
 The article slug becomes the GitHub filename, so sending the same slug again updates the existing article instead of creating a duplicate.
 
@@ -50,9 +51,13 @@ The same Worker serves the static Astro build and handles `/api/telegram/*`.
 
 ```bash
 npm install
+npm run check
 npm run build
+npm run deploy:dry-run
 npm run deploy
 ```
+
+The repo pins Wrangler so development, CI and production use the same deployment toolchain.
 
 ## 4. Add Worker secrets
 
@@ -132,6 +137,36 @@ explained
 
 Use `status: "draft"` to store the Markdown in GitHub without generating a public article route.
 
+## Upload article screenshots
+
+Send an image **as a Telegram document** so Telegram does not unnecessarily recompress the source screenshot.
+
+Supported formats:
+
+```text
+.png
+.jpg / .jpeg
+.webp
+.gif
+.avif
+```
+
+DigiPlain stores the file in a date-based static folder such as:
+
+```text
+public/uploads/2026/08/mtn-data-settings.webp
+```
+
+The bot replies with the public path and a ready-to-paste Markdown line:
+
+```md
+![Describe this image](/uploads/2026/08/mtn-data-settings.webp)
+```
+
+Images are capped at 4 MB. SVG uploads are intentionally not accepted by the Telegram publisher.
+
+If an image with the same sanitized filename already exists in that month, sending it again updates that asset. Sending identical bytes creates no new GitHub commit.
+
 ## Updating an article
 
 Send a new Markdown file using the same `slug`.
@@ -168,30 +203,38 @@ The publisher is intentionally fail-closed:
 - Telegram webhook requests must contain the configured secret header.
 - Only one configured Telegram chat is allowed to publish.
 - Bot-authored messages are ignored.
-- Only `.md` documents or pasted Markdown with frontmatter are accepted.
-- Article frontmatter is checked before a GitHub write.
+- Article Markdown is validated before a GitHub write.
+- Image formats and file sizes are restricted before media is written.
+- SVG is not accepted through Telegram publishing.
 - The GitHub token can be scoped only to DigiPlain content writes.
 - Real secrets are never stored in the repository.
 
 ## Automatic deployment
 
-`.github/workflows/ci.yml` builds every push to `main`.
+`.github/workflows/ci.yml` validates every push and pull request with:
 
-If these GitHub repository secrets exist, the same workflow deploys the successful build to Cloudflare:
+```text
+Astro strict check
+Astro production build
+Cloudflare Worker dry-run bundle
+```
+
+If these GitHub repository secrets exist, a successful push to `main` also deploys to Cloudflare:
 
 ```text
 CLOUDFLARE_API_TOKEN
 CLOUDFLARE_ACCOUNT_ID
 ```
 
-If they are missing, CI still builds normally and skips deployment instead of failing.
+If they are missing, CI still validates normally and skips deployment instead of failing.
 
 That means a completed production publishing flow is:
 
 ```text
-Send Markdown in Telegram
+Send Markdown or screenshot in Telegram
 -> Worker validates it
 -> Worker commits it to GitHub
--> GitHub Actions builds Astro
+-> GitHub Actions validates and builds Astro
+-> GitHub Actions validates the Worker bundle
 -> GitHub Actions deploys the new static site to Cloudflare
 ```
