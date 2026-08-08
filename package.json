@@ -8,7 +8,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "deploy": "npx wrangler@latest deploy"
+    "deploy": "npx wrangler@latest deploy",
+    "publisher:dev": "npm run build && npx wrangler@latest dev",
+    "telegram:set-webhook": "node scripts/telegram-set-webhook.mjs"
   },
   "dependencies": {
     "astro": "^6.4.8"
