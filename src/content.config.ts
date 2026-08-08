@@ -16,9 +16,26 @@ const articles = defineCollection({
     verifiedAt: z.coerce.date().optional(),
     evergreen: z.boolean().default(true),
     featured: z.boolean().default(false),
+    featuredImage: z.string().startsWith('/uploads/').optional(),
+    featuredImageAlt: z.string().min(1).max(180).optional(),
     status: z.enum(['published', 'draft']).default('published'),
     author: z.string().default('DigiPlain Editorial'),
     sourceNote: z.string().optional()
+  }).superRefine((data, ctx) => {
+    if (data.featuredImage && !data.featuredImageAlt) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['featuredImageAlt'],
+        message: 'featuredImageAlt is required when featuredImage is set.'
+      });
+    }
+    if (data.featuredImageAlt && !data.featuredImage) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['featuredImage'],
+        message: 'featuredImage is required when featuredImageAlt is set.'
+      });
+    }
   })
 });
 
