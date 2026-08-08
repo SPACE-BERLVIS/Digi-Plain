@@ -63,3 +63,34 @@ const schema = {
     </aside>
   </div>
 </BaseLayout>
+
+<style is:global>
+  .article-body a {
+    color: var(--brand);
+    font-weight: 650;
+    text-decoration-line: underline;
+    text-decoration-thickness: 0.08em;
+    text-decoration-color: color-mix(in srgb, var(--brand) 55%, transparent);
+    text-underline-offset: 0.18em;
+    transition: color .15s ease, text-decoration-color .15s ease, background-color .15s ease;
+  }
+
+  .article-body a:hover {
+    color: color-mix(in srgb, var(--brand) 78%, var(--ink));
+    text-decoration-color: currentColor;
+    background: var(--brand-soft);
+  }
+
+  .article-body a:focus-visible {
+    outline: 3px solid var(--brand-soft);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .article-body a[href^="http"]::after {
+    content: " ↗";
+    font-size: .78em;
+    font-weight: 800;
+    text-decoration: none;
+  }
+</style>
