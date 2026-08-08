@@ -75,10 +75,15 @@ function extractFrontmatter(markdown: string) {
   };
 }
 
-function frontmatterValue(frontmatter: string, key: string) {
-  const pattern = new RegExp(`^${key}:\\s*(.+)$`, 'm');
+function frontmatterRawValue(frontmatter: string, key: string) {
+  const pattern = new RegExp(`^${key}:\\s*(.*)$`, 'm');
   const match = frontmatter.match(pattern);
-  return match ? stripQuotes(match[1]) : undefined;
+  return match ? match[1].trim() : undefined;
+}
+
+function frontmatterValue(frontmatter: string, key: string) {
+  const raw = frontmatterRawValue(frontmatter, key);
+  return raw === undefined ? undefined : stripQuotes(raw);
 }
 
 function validateArticle(markdown: string) {
@@ -90,6 +95,7 @@ function validateArticle(markdown: string) {
   const topic = frontmatterValue(frontmatter, 'topic');
   const publishedAt = frontmatterValue(frontmatter, 'publishedAt');
   const updatedAt = frontmatterValue(frontmatter, 'updatedAt');
+  const verifiedAt = frontmatterValue(frontmatter, 'verifiedAt');
   const status = frontmatterValue(frontmatter, 'status') || 'published';
 
   const missing = [
@@ -115,12 +121,33 @@ function validateArticle(markdown: string) {
   if (Number.isNaN(Date.parse(publishedAt!)) || Number.isNaN(Date.parse(updatedAt!))) {
     throw new Error('publishedAt and updatedAt must be valid dates.');
   }
+  if (verifiedAt && Number.isNaN(Date.parse(verifiedAt))) {
+    throw new Error('verifiedAt must be a valid date when provided.');
+  }
+
+  for (const key of ['evergreen', 'featured']) {
+    const raw = frontmatterRawValue(frontmatter, key);
+    if (raw !== undefined && !/^(true|false)$/.test(raw)) {
+      throw new Error(`${key} must be an unquoted true or false value.`);
+    }
+  }
+
+  const tags = frontmatterRawValue(frontmatter, 'tags');
+  if (tags !== undefined && !(tags.startsWith('[') && tags.endsWith(']'))) {
+    throw new Error('tags must use an inline YAML array, for example ["android", "how-to"].');
+  }
+
+  const sourceNote = frontmatterRawValue(frontmatter, 'sourceNote');
+  if (sourceNote !== undefined && sourceNote.length === 0) {
+    throw new Error('sourceNote must contain text or be removed.');
+  }
+
   if (body.length < 80) throw new Error('Article body is too short; add a useful answer before publishing.');
   if (new TextEncoder().encode(source).byteLength > MAX_MARKDOWN_BYTES) {
     throw new Error('Markdown file is larger than the 1 MB publishing limit.');
   }
 
-  return { source, slug: slug!, title: title!, status };
+  return { source, slug: slug!, title: title!, category: category!, status };
 }
 
 function base64Encode(value: string) {
@@ -145,7 +172,7 @@ function githubConfig(env: Env) {
 }
 
 async function githubRequest(env: Env, path: string, init: RequestInit = {}) {
-  const response = await fetch(`https://api.github.com${path}`, {
+  return fetch(`https://api.github.com${path}`, {
     ...init,
     headers: {
       accept: 'application/vnd.github+json',
@@ -156,7 +183,6 @@ async function githubRequest(env: Env, path: string, init: RequestInit = {}) {
       ...(init.headers || {}),
     },
   });
-  return response;
 }
 
 async function upsertArticle(env: Env, markdown: string) {
@@ -290,12 +316,14 @@ async function handleTelegram(request: Request, env: Env) {
 
     const result = await upsertArticle(env, markdown);
     const action = result.unchanged ? 'Already current' : result.status === 'draft' ? 'Draft saved' : 'Published';
-    await sendFeedback(env, message, `✅ ${action}: ${result.title}\n/${result.repoPath}`);
+    const location = result.status === 'draft' ? result.repoPath : `/${result.category}/${result.slug}/`;
+    await sendFeedback(env, message, `✅ ${action}: ${result.title}\n${location}`);
     return json({ ok: true, article: result.slug, status: result.status, unchanged: result.unchanged });
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'Unknown publisher error.';
-    try { await sendFeedback(env, message, `❌ Not published: ${detail}`); } catch { /* keep webhook response useful */ }
-    return json({ ok: false, error: detail }, 422);
+    try { await sendFeedback(env, message, `❌ Not published: ${detail}`); } catch { /* feedback is best-effort */ }
+    // Acknowledge the Telegram update so malformed Markdown is not retried repeatedly.
+    return json({ ok: false, error: detail });
   }
 }
 
