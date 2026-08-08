@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Search DigiPlain" description="Search DigiPlain's practical guides." noindex={true}>
+  <section class="search-page container">
+    <span class="eyebrow">Search</span>
+    <h1 style="font-size:clamp(2.4rem,6vw,4.6rem);margin:12px 0 24px">What do you need help with?</h1>
+    <label for="site-search" class="muted" style="display:block;margin-bottom:8px">Search phones, apps, internet, Nigerian services and explainers.</label>
+    <input id="site-search" type="search" placeholder="Try: WhatsApp, MTN, hotspot…" autocomplete="off" />
+    <div id="search-status" class="muted" style="margin-top:12px" aria-live="polite"></div>
+    <div id="search-results" class="search-results"></div>
+  </section>
+  <script>
+    const input = document.querySelector('#site-search');
+    const results = document.querySelector('#search-results');
+    const status = document.querySelector('#search-status');
+    let index = [];
+    const esc = (s='') => s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    fetch('/search-index.json').then(r => r.json()).then(data => {
+      index = data;
+      const query = new URLSearchParams(location.search).get('q') || '';
+      if (query) { input.value = query; run(query); }
+    });
+    function run(raw) {
+      const q = raw.trim().toLowerCase();
+      results.innerHTML = '';
+      if (!q) { status.textContent = ''; return; }
+      const matches = index.filter(item => [item.title,item.description,item.category,item.topic,...item.tags].join(' ').toLowerCase().includes(q)).slice(0,30);
+      status.textContent = `${matches.length} result${matches.length === 1 ? '' : 's'}`;
+      for (const item of matches) {
+        const a = document.createElement('a');
+        a.className = 'search-result';
+        a.href = item.url;
+        a.innerHTML = `<small>${esc(item.category)} · ${esc(item.topic)}</small><h3 style="margin-top:6px">${esc(item.title)}</h3><p>${esc(item.description)}</p>`;
+        results.appendChild(a);
+      }
+    }
+    input.addEventListener('input', e => run(e.target.value));
+  </script>
+</BaseLayout>

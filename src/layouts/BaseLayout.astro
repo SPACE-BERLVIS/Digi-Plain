@@ -1,0 +1,50 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+const {
+  title = 'DigiPlain — Digital life, made simple',
+  description = 'Clear, verified guides for phones, apps, internet services and everyday digital life.',
+  canonical,
+  image = '/favicon.svg',
+  type = 'website',
+  noindex = false,
+  structuredData
+} = Astro.props;
+const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.com';
+const url = canonical || new URL(Astro.url.pathname, site).toString();
+const imageUrl = image.startsWith('http') ? image : new URL(image, site).toString();
+---
+<!doctype html>
+<html lang="en-NG">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {noindex && <meta name="robots" content="noindex,follow" />}
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:site_name" content="DigiPlain" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="theme-color" content="#fafaf7" />
+    <link rel="alternate" type="application/rss+xml" title="DigiPlain RSS" href="/rss.xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet" />
+    {structuredData && <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />}
+  </head>
+  <body>
+    <Header />
+    <main><slot /></main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,50 @@
+---
+import BaseLayout from './BaseLayout.astro';
+const { article } = Astro.props;
+const d = article.data;
+const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.com';
+const url = `${site}/${d.category}/${d.slug}/`;
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: d.title,
+  description: d.description,
+  datePublished: d.publishedAt.toISOString(),
+  dateModified: d.updatedAt.toISOString(),
+  mainEntityOfPage: url,
+  author: { '@type': 'Organization', name: d.author },
+  publisher: { '@type': 'Organization', name: 'DigiPlain', url: site }
+};
+---
+<BaseLayout title={`${d.title} | DigiPlain`} description={d.description} canonical={url} type="article" structuredData={schema}>
+  <header class="article-header container">
+    <div class="breadcrumbs"><a href="/">Home</a><span>›</span><a href={`/${d.category}/`}>{d.category}</a><span>›</span>{d.topic}</div>
+    <div class="eyebrow">{d.topic}</div>
+    <h1>{d.title}</h1>
+    <p class="article-dek">{d.description}</p>
+    <div class="article-meta">
+      <span>By {d.author}</span>
+      <span>Published {d.publishedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>
+      <span>Updated {d.updatedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>
+      {d.verifiedAt && <span>Verified {d.verifiedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>}
+    </div>
+  </header>
+  <div class="article-shell">
+    <article class="article-body">
+      <slot />
+      <div class="ad-slot" aria-label="Advertisement placeholder">Advertisement</div>
+      <div class="answer-box">
+        <strong>Was this guide helpful?</strong>
+        <p class="muted" style="margin:6px 0 0">If a step has changed, tell us through the corrections page. We review practical guides for freshness.</p>
+      </div>
+    </article>
+    <aside class="article-sidebar">
+      <div class="sidebar-box">
+        <strong>More on DigiPlain</strong>
+        <a href={`/${d.category}/`}>Browse {d.category}</a>
+        <a href="/search/">Search all guides</a>
+        <a href="/editorial-policy/">How we verify guides</a>
+      </div>
+    </aside>
+  </div>
+</BaseLayout>

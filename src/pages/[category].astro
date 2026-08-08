@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+
+const categories = {
+  phones: { title:'Phone guides', eyebrow:'Phones', description:'Clear fixes and practical settings for Android phones, Infinix, Tecno, iPhone and everyday device problems.' },
+  apps: { title:'App guides', eyebrow:'Apps', description:'Step-by-step help for WhatsApp, Instagram, TikTok, Telegram and the apps you use every day.' },
+  internet: { title:'Internet guides', eyebrow:'Internet', description:'Mobile data, Wi-Fi, MTN, Airtel, hotspots and network problems explained in plain language.' },
+  nigeria: { title:'Nigeria digital guides', eyebrow:'Nigeria', description:'Clear instructions for online services and digital processes Nigerians need repeatedly.' },
+  explained: { title:'Explained simply', eyebrow:'Explained', description:'Internet language, digital concepts and trending terms explained without unnecessary jargon.' }
+};
+
+export function getStaticPaths() {
+  return Object.keys(categories).map(category => ({ params:{ category } }));
+}
+
+const { category } = Astro.params;
+const meta = categories[category];
+const articles = (await getCollection('articles', ({ data }) => data.status === 'published' && data.category === category)).sort((a,b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
+const topics = [...new Set(articles.map(a => a.data.topic))].sort();
+---
+<BaseLayout title={`${meta.title} | DigiPlain`} description={meta.description}>
+  <header class="page-hero container">
+    <div class="breadcrumbs"><a href="/">Home</a><span>›</span>{meta.eyebrow}</div>
+    <span class="eyebrow">{meta.eyebrow}</span>
+    <h1>{meta.title}</h1>
+    <p>{meta.description}</p>
+  </header>
+  <section class="section" style="padding-top:20px">
+    <div class="container">
+      {topics.length > 0 && <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px">{topics.map(topic => <span style="border:1px solid var(--line);background:var(--surface);padding:8px 12px;border-radius:999px;font-size:.86rem">{topic}</span>)}</div>}
+      {articles.length ? <div class="grid three">{articles.map(article => <ArticleCard article={article} />)}</div> : <div class="card"><h2>Guides are coming.</h2><p class="muted" style="margin-top:10px">We are building this topic around useful, verified search questions rather than filler articles.</p></div>}
+    </div>
+  </section>
+</BaseLayout>

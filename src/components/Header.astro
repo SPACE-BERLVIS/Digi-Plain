@@ -1,0 +1,20 @@
+---
+const nav = [
+  ['Phones', '/phones/'],
+  ['Apps', '/apps/'],
+  ['Internet', '/internet/'],
+  ['Nigeria', '/nigeria/'],
+  ['Explained', '/explained/']
+];
+---
+<header class="site-header">
+  <div class="container nav">
+    <a class="brand" href="/" aria-label="DigiPlain home">Digi<b>Plain</b>.</a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      {nav.map(([label, href]) => <a href={href}>{label}</a>)}
+    </nav>
+    <form class="nav-search" action="/search/" method="get" role="search">
+      <input type="search" name="q" placeholder="Search DigiPlain" aria-label="Search DigiPlain" />
+    </form>
+  </div>
+</header>

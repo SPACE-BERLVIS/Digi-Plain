@@ -1,0 +1,82 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+const articles = (await getCollection('articles', ({ data }) => data.status === 'published')).sort((a,b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
+const featured = articles.filter(a => a.data.featured).slice(0, 6);
+const recent = articles.slice(0, 6);
+const topics = [
+  { name:'Phones', path:'/phones/', copy:'Android, Infinix, Tecno, iPhone and practical device fixes.', label:'Device help' },
+  { name:'Apps', path:'/apps/', copy:'WhatsApp, TikTok, Instagram, banking apps and everyday software.', label:'App guides' },
+  { name:'Internet', path:'/internet/', copy:'MTN, Airtel, mobile data, Wi-Fi, hotspots and connectivity.', label:'Stay connected' },
+  { name:'Nigeria', path:'/nigeria/', copy:'Digital processes and online services Nigerians repeatedly need.', label:'Local guides' },
+  { name:'Explained', path:'/explained/', copy:'Internet terms, slang and confusing digital ideas made clear.', label:'Understand it' }
+];
+const orgSchema = {
+  '@context':'https://schema.org',
+  '@type':'Organization',
+  name:'DigiPlain',
+  url: Astro.site?.toString() || 'https://digiplain.com',
+  description:'Clear, verified guides for phones, apps, internet services and everyday digital life.'
+};
+---
+<BaseLayout structuredData={orgSchema}>
+  <section class="hero">
+    <div class="container hero-inner">
+      <div>
+        <div class="eyebrow">Digital life, made simple</div>
+        <h1>Find the answer.<br/><span>Get on with your day.</span></h1>
+        <p class="hero-copy">Clear, practical answers for the phones, apps, networks and online services you use every day. Written for people, not search engines.</p>
+        <form class="hero-search" action="/search/" method="get" role="search">
+          <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search DigiPlain" />
+          <button type="submit">Search guides</button>
+        </form>
+      </div>
+      <aside class="hero-note">
+        <span class="eyebrow">Our standard</span>
+        <strong>Answer first.</strong>
+        <p class="muted">No long introductions before the solution. Fast-changing guides carry an updated or verified date so you can see how fresh they are.</p>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <div><span class="eyebrow">Browse by topic</span><h2>Start with what you use.</h2></div>
+        <p class="muted">DigiPlain is organized around real tasks, not tech-industry jargon.</p>
+      </div>
+      <div class="grid three">
+        {topics.map((topic) => (
+          <a class="card topic-card" href={topic.path}>
+            <div><span class="eyebrow">{topic.label}</span><h3 style="font-size:1.7rem;margin-top:12px">{topic.name}</h3><p class="muted" style="margin-top:12px">{topic.copy}</p></div>
+            <span class="arrow">↗</span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {featured.length > 0 && <section class="section" style="border-top:1px solid var(--line)">
+    <div class="container">
+      <div class="section-head"><div><span class="eyebrow">Start here</span><h2>Useful right now.</h2></div></div>
+      <div class="grid three">{featured.map(article => <ArticleCard article={article} />)}</div>
+    </div>
+  </section>}
+
+  <section class="section" style="border-top:1px solid var(--line)">
+    <div class="container">
+      <div class="section-head"><div><span class="eyebrow">Recently updated</span><h2>Fresh answers.</h2></div><a class="button secondary" href="/search/">View all guides</a></div>
+      <div class="grid three">{recent.map(article => <ArticleCard article={article} />)}</div>
+    </div>
+  </section>
+
+  <section class="section" style="border-top:1px solid var(--line)">
+    <div class="container">
+      <div class="card" style="padding:clamp(28px,6vw,64px);display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center">
+        <div><span class="eyebrow">Why DigiPlain exists</span><h2 style="margin-top:14px">The internet has enough content. It needs clearer answers.</h2></div>
+        <div><p class="muted">We focus on questions people actually type when something is confusing, broken or unfamiliar. Our guides prioritize the direct answer, exact steps, troubleshooting, and sources when a process depends on an official service.</p><a class="button" href="/editorial-policy/">How we publish</a></div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
