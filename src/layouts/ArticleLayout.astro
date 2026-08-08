@@ -4,6 +4,7 @@ const { article } = Astro.props;
 const d = article.data;
 const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
+const featuredImageUrl = d.featuredImage ? new URL(d.featuredImage, site).toString() : undefined;
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -12,11 +13,20 @@ const schema = {
   datePublished: d.publishedAt.toISOString(),
   dateModified: d.updatedAt.toISOString(),
   mainEntityOfPage: url,
+  ...(featuredImageUrl ? { image: [featuredImageUrl] } : {}),
   author: { '@type': 'Organization', name: d.author },
   publisher: { '@type': 'Organization', name: 'DigiPlain', url: site }
 };
 ---
-<BaseLayout title={`${d.title} | DigiPlain`} description={d.description} canonical={url} type="article" structuredData={schema}>
+<BaseLayout
+  title={`${d.title} | DigiPlain`}
+  description={d.description}
+  canonical={url}
+  image={d.featuredImage}
+  imageAlt={d.featuredImageAlt || d.title}
+  type="article"
+  structuredData={schema}
+>
   <header class="article-header container">
     <div class="breadcrumbs"><a href="/">Home</a><span>›</span><a href={`/${d.category}/`}>{d.category}</a><span>›</span>{d.topic}</div>
     <div class="eyebrow">{d.topic}</div>
@@ -29,6 +39,11 @@ const schema = {
       {d.verifiedAt && <span>Verified {d.verifiedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>}
     </div>
   </header>
+  {d.featuredImage && (
+    <figure class="article-featured-image">
+      <img src={d.featuredImage} alt={d.featuredImageAlt || d.title} loading="eager" fetchpriority="high" />
+    </figure>
+  )}
   <div class="article-shell">
     <article class="article-body">
       <slot />
