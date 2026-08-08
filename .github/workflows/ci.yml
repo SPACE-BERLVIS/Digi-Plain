@@ -31,6 +31,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Validate Cloudflare Worker bundle
+        run: npx wrangler@latest deploy --dry-run
+
       - name: Check Cloudflare deployment configuration
         id: cloudflare
         if: github.event_name == 'push'
