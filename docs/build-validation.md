@@ -7,3 +7,5 @@ The repository's pull-request workflow must pass `npm run check` and `npm run bu
 The smoke-test branch is intentionally documentation-only; the PR merge ref still compiles the latest `main` plus this note.
 
 The validation also bundles the Cloudflare Worker with Wrangler dry-run after Astro succeeds.
+
+A green run validates the static site and Telegram publishing Worker together.
