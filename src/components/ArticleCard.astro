@@ -1,13 +1,13 @@
 ---
 const { article } = Astro.props;
 const d = article.data;
+const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
+const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
 ---
 <a class="card article-card" href={`/${d.category}/${d.slug}/`}>
-  {d.featuredImage && (
-    <div class="article-card-image">
-      <img src={d.featuredImage} alt={d.featuredImageAlt || d.title} loading="lazy" />
-    </div>
-  )}
+  <div class="article-card-image">
+    <img src={coverImage} alt={coverImageAlt} loading="lazy" />
+  </div>
   <div class="article-card-content">
     <div class="meta">{d.topic}</div>
     <h3>{d.title}</h3>
