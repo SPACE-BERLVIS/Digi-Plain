@@ -2,7 +2,7 @@ import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
 
 export async function GET({ site }: APIContext) {
-  const base = site?.toString().replace(/\/$/, '') || 'https://digiplain.com';
+  const base = site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
   const articles = await getCollection('articles', ({ data }) => data.status === 'published');
   const staticPaths = ['/', '/phones/', '/apps/', '/internet/', '/nigeria/', '/explained/', '/about/', '/editorial-policy/', '/corrections/', '/contact/', '/privacy/', '/terms/'];
   const urls = [
