@@ -100,6 +100,8 @@ function validateArticle(markdown: string) {
   const publishedAt = frontmatterValue(frontmatter, 'publishedAt');
   const updatedAt = frontmatterValue(frontmatter, 'updatedAt');
   const verifiedAt = frontmatterValue(frontmatter, 'verifiedAt');
+  const featuredImage = frontmatterValue(frontmatter, 'featuredImage');
+  const featuredImageAlt = frontmatterValue(frontmatter, 'featuredImageAlt');
   const status = frontmatterValue(frontmatter, 'status') || 'published';
 
   const missing = [
@@ -127,6 +129,19 @@ function validateArticle(markdown: string) {
   }
   if (verifiedAt && Number.isNaN(Date.parse(verifiedAt))) {
     throw new Error('verifiedAt must be a valid date when provided.');
+  }
+
+  if (featuredImage && !featuredImageAlt) {
+    throw new Error('featuredImageAlt is required when featuredImage is set.');
+  }
+  if (featuredImageAlt && !featuredImage) {
+    throw new Error('featuredImage is required when featuredImageAlt is set.');
+  }
+  if (featuredImage && !featuredImage.startsWith('/uploads/')) {
+    throw new Error('featuredImage must use a DigiPlain /uploads/ path returned by the bot.');
+  }
+  if (featuredImageAlt && featuredImageAlt.length > 180) {
+    throw new Error('featuredImageAlt must be 180 characters or fewer.');
   }
 
   for (const key of ['evergreen', 'featured']) {
@@ -335,11 +350,13 @@ slug: "your-article-slug"
 category: "phones"
 topic: "Android"
 tags: ["android", "how-to"]
-publishedAt: 2026-08-08
-updatedAt: 2026-08-08
-verifiedAt: 2026-08-08
+publishedAt: 2026-08-09
+updatedAt: 2026-08-09
+verifiedAt: 2026-08-09
 evergreen: true
 featured: false
+featuredImage: "/uploads/2026/08/your-image.jpg"
+featuredImageAlt: "Describe the featured image clearly"
 status: "draft"
 author: "DigiPlain Editorial"
 ---
@@ -368,7 +385,7 @@ async function handleTelegram(request: Request, env: Env) {
   try {
     const text = message.text?.trim();
     if (text === '/help' || text === '/start') {
-      await sendFeedback(env, message, 'DigiPlain publisher: send a .md file or paste Markdown beginning with ---. Send PNG/JPG/WEBP/GIF/AVIF images as documents to store screenshots. Use /template for the article fields.');
+      await sendFeedback(env, message, 'DigiPlain publisher: send a .md file or paste Markdown beginning with ---. Send PNG/JPG/WEBP/GIF/AVIF images as documents. The image reply includes a featuredImage path and Markdown. Use /template for article fields.');
       return json({ ok: true, command: 'help' });
     }
     if (text === '/template') {
@@ -390,7 +407,11 @@ async function handleTelegram(request: Request, env: Env) {
       if (imageExtension(fileName)) {
         const image = await uploadImage(env, message.document);
         const action = image.unchanged ? 'Image already current' : 'Image uploaded';
-        await sendFeedback(env, message, `✅ ${action}\n${image.publicPath}\n\nMarkdown:\n![Describe this image](${image.publicPath})`);
+        await sendFeedback(
+          env,
+          message,
+          `✅ ${action}\n${image.publicPath}\n\nFeatured image frontmatter:\nfeaturedImage: "${image.publicPath}"\nfeaturedImageAlt: "Describe this image clearly"\n\nMarkdown:\n![Describe this image](${image.publicPath})`,
+        );
         return json({ ok: true, image: image.publicPath, unchanged: image.unchanged });
       }
 
