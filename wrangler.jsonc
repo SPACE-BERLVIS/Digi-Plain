@@ -1,9 +1,17 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "digiplain",
+  "main": "./src/publisher-worker.ts",
   "compatibility_date": "2026-08-08",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/telegram/*"]
+  },
+  "vars": {
+    "GITHUB_OWNER": "SPACE-BERLVIS",
+    "GITHUB_REPO": "Digi-Plain",
+    "GITHUB_BRANCH": "main"
   }
 }
