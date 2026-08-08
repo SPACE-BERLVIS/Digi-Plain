@@ -2,7 +2,15 @@
 
 **Digital life, made simple.**
 
-DigiPlain is a database-free, SEO-first static publication built with Astro. Content lives as Markdown in Git and is designed to be publishable later from a Telegram bot.
+DigiPlain is a database-free, SEO-first static publication for practical answers about phones, apps, internet services, Nigerian digital processes and everyday technology.
+
+## Architecture
+
+```text
+Telegram -> Cloudflare Worker -> GitHub Markdown -> Astro -> Cloudflare
+```
+
+Content lives as Markdown in Git. No CMS database is required.
 
 ## Stack
 
@@ -10,6 +18,8 @@ DigiPlain is a database-free, SEO-first static publication built with Astro. Con
 - Markdown content collections
 - Static HTML output
 - Cloudflare Workers Static Assets
+- Cloudflare Worker API route for Telegram publishing
+- GitHub Actions build/deploy pipeline
 - No database
 
 ## Local development
@@ -22,6 +32,7 @@ npm run dev
 ## Build
 
 ```bash
+npm run check
 npm run build
 ```
 
@@ -41,9 +52,9 @@ Deploy command:
 npx wrangler deploy
 ```
 
-The Worker serves the generated `dist` directory as static assets.
+`wrangler.jsonc` serves `dist/` as static assets and invokes `src/publisher-worker.ts` only for `/api/telegram/*` requests.
 
-## Publishing content
+## Publishing content manually
 
 Add Markdown files to:
 
@@ -51,6 +62,46 @@ Add Markdown files to:
 src/content/articles/
 ```
 
-Use the frontmatter schema in `src/content.config.ts`.
+The frontmatter schema is defined in `src/content.config.ts`.
 
-The future Telegram publisher should write or update these Markdown files through the GitHub Contents API, then trigger the normal Cloudflare deployment.
+## Publishing from Telegram
+
+The Telegram publisher is implemented. It accepts `.md` documents or pasted Markdown, validates article frontmatter, and creates/updates `src/content/articles/<slug>.md` through the GitHub Contents API.
+
+Setup guide:
+
+```text
+docs/telegram-publishing.md
+```
+
+Useful commands:
+
+```bash
+npm run telegram:inspect
+npm run telegram:set-webhook
+npm run publisher:dev
+```
+
+## Continuous integration and deployment
+
+Every push to `main` runs:
+
+```text
+npm install
+npm run check
+npm run build
+```
+
+If the repository has `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets, a successful `main` build is deployed automatically with Wrangler.
+
+## Content model
+
+Primary sections:
+
+- Phones
+- Apps
+- Internet
+- Nigeria
+- Explained
+
+Draft articles remain in Git but are excluded from generated public routes. Re-uploading the same slug updates the existing article, preserving a simple database-free editorial workflow.
