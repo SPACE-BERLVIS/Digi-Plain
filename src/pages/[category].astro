@@ -14,7 +14,8 @@ const categories = {
 type Category = keyof typeof categories;
 
 export function getStaticPaths() {
-  return (Object.keys(categories) as Category[]).map(category => ({ params:{ category } }));
+  const categoryPaths = ['phones', 'apps', 'internet', 'nigeria', 'explained'];
+  return categoryPaths.map(category => ({ params:{ category } }));
 }
 
 const category = Astro.params.category as Category;
