@@ -11,17 +11,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div id="search-results" class="search-results"></div>
   </section>
   <script>
-    const input = document.querySelector('#site-search');
-    const results = document.querySelector('#search-results');
-    const status = document.querySelector('#search-status');
-    let index = [];
-    const esc = (s='') => s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-    fetch('/search-index.json').then(r => r.json()).then(data => {
-      index = data;
-      const query = new URLSearchParams(location.search).get('q') || '';
-      if (query) { input.value = query; run(query); }
-    });
-    function run(raw) {
+    type SearchItem = {
+      title: string;
+      description: string;
+      category: string;
+      topic: string;
+      tags: string[];
+      url: string;
+    };
+
+    const input = document.querySelector<HTMLInputElement>('#site-search');
+    const results = document.querySelector<HTMLDivElement>('#search-results');
+    const status = document.querySelector<HTMLDivElement>('#search-status');
+    let index: SearchItem[] = [];
+    const entities: Record<string, string> = {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'};
+    const esc = (s = '') => s.replace(/[&<>'"]/g, c => entities[c] ?? c);
+
+    function run(raw: string) {
+      if (!results || !status) return;
       const q = raw.trim().toLowerCase();
       results.innerHTML = '';
       if (!q) { status.textContent = ''; return; }
@@ -35,6 +42,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         results.appendChild(a);
       }
     }
-    input.addEventListener('input', e => run(e.target.value));
+
+    fetch('/search-index.json')
+      .then(response => response.json() as Promise<SearchItem[]>)
+      .then(data => {
+        index = data;
+        const query = new URLSearchParams(location.search).get('q') || '';
+        if (query && input) { input.value = query; run(query); }
+      });
+
+    input?.addEventListener('input', () => run(input.value));
   </script>
 </BaseLayout>
