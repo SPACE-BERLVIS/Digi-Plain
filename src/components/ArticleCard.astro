@@ -3,8 +3,15 @@ const { article } = Astro.props;
 const d = article.data;
 ---
 <a class="card article-card" href={`/${d.category}/${d.slug}/`}>
-  <div class="meta">{d.topic}</div>
-  <h3>{d.title}</h3>
-  <p>{d.description}</p>
-  <time datetime={d.updatedAt.toISOString()}>Updated {d.updatedAt.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' })}</time>
+  {d.featuredImage && (
+    <div class="article-card-image">
+      <img src={d.featuredImage} alt={d.featuredImageAlt || d.title} loading="lazy" />
+    </div>
+  )}
+  <div class="article-card-content">
+    <div class="meta">{d.topic}</div>
+    <h3>{d.title}</h3>
+    <p>{d.description}</p>
+    <time datetime={d.updatedAt.toISOString()}>Updated {d.updatedAt.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' })}</time>
+  </div>
 </a>
