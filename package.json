@@ -10,6 +10,7 @@
     "check": "astro check",
     "deploy": "npx wrangler@latest deploy",
     "publisher:dev": "npm run build && npx wrangler@latest dev",
+    "telegram:inspect": "node scripts/telegram-inspect-updates.mjs",
     "telegram:set-webhook": "node scripts/telegram-set-webhook.mjs"
   },
   "dependencies": {
