@@ -7,6 +7,7 @@ const {
   description = 'Clear, verified guides for phones, apps, internet services and everyday digital life.',
   canonical,
   image = '/favicon.svg',
+  imageAlt = 'DigiPlain',
   type = 'website',
   noindex = false,
   structuredData
@@ -31,10 +32,13 @@ const imageUrl = image.startsWith('http') ? image : new URL(image, site).toStrin
     <meta property="og:description" content={description} />
     <meta property="og:url" content={url} />
     <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:alt" content={imageAlt} />
     <meta property="og:site_name" content="DigiPlain" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
     <meta name="theme-color" content="#fafaf7" />
     <link rel="alternate" type="application/rss+xml" title="DigiPlain RSS" href="/rss.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
