@@ -1,0 +1,12 @@
+# Copy this file to .dev.vars for local Wrangler development.
+# Never commit real secret values.
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_WEBHOOK_SECRET=
+TELEGRAM_CHAT_ID=
+GITHUB_TOKEN=
+
+# Optional overrides; production defaults are already in wrangler.jsonc.
+GITHUB_OWNER=SPACE-BERLVIS
+GITHUB_REPO=Digi-Plain
+GITHUB_BRANCH=main
