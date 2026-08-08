@@ -23,6 +23,7 @@ type TelegramDocument = {
 type TelegramMessage = {
   message_id: number;
   text?: string;
+  caption?: string;
   document?: TelegramDocument;
   chat: { id: number; type: string };
   from?: { id: number; is_bot?: boolean };
@@ -37,8 +38,11 @@ type TelegramUpdate = {
 };
 
 const ARTICLE_PATH = 'src/content/articles';
+const UPLOAD_PATH = 'public/uploads';
 const VALID_CATEGORIES = new Set(['phones', 'apps', 'internet', 'nigeria', 'explained']);
+const VALID_IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif']);
 const MAX_MARKDOWN_BYTES = 1_000_000;
+const MAX_IMAGE_BYTES = 4_000_000;
 
 const json = (value: unknown, status = 200) =>
   new Response(JSON.stringify(value), {
@@ -150,11 +154,17 @@ function validateArticle(markdown: string) {
   return { source, slug: slug!, title: title!, category: category!, status };
 }
 
-function base64Encode(value: string) {
-  const bytes = new TextEncoder().encode(value);
+function bytesToBase64(bytes: Uint8Array) {
   let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
+  const chunkSize = 0x8000;
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
   return btoa(binary);
+}
+
+function base64Encode(value: string) {
+  return bytesToBase64(new TextEncoder().encode(value));
 }
 
 function base64Decode(value: string) {
@@ -185,21 +195,20 @@ async function githubRequest(env: Env, path: string, init: RequestInit = {}) {
   });
 }
 
-async function upsertArticle(env: Env, markdown: string) {
-  const article = validateArticle(markdown);
+async function putGitHubContent(env: Env, repoPath: string, contentBase64: string, commitMessage: string) {
   const { owner, repo, branch } = githubConfig(env);
-  const repoPath = `${ARTICLE_PATH}/${article.slug}.md`;
   const encodedPath = repoPath.split('/').map(encodeURIComponent).join('/');
   const contentUrl = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}?ref=${encodeURIComponent(branch)}`;
 
   let sha: string | undefined;
+  let existingContent: string | undefined;
   const current = await githubRequest(env, contentUrl);
-
   if (current.ok) {
     const existing = await current.json() as { sha?: string; content?: string };
     sha = existing.sha;
-    if (existing.content && base64Decode(existing.content) === article.source) {
-      return { ...article, repoPath, unchanged: true };
+    existingContent = existing.content?.replace(/\s/g, '');
+    if (existingContent === contentBase64.replace(/\s/g, '')) {
+      return { unchanged: true };
     }
   } else if (current.status !== 404) {
     throw new Error(`GitHub read failed (${current.status}): ${await current.text()}`);
@@ -209,9 +218,9 @@ async function upsertArticle(env: Env, markdown: string) {
   const write = await githubRequest(env, putUrl, {
     method: 'PUT',
     body: JSON.stringify({
-      message: `content: ${sha ? 'update' : 'publish'} ${article.slug} via Telegram`,
+      message: commitMessage,
       branch,
-      content: base64Encode(article.source),
+      content: contentBase64,
       ...(sha ? { sha } : {}),
     }),
   });
@@ -220,7 +229,19 @@ async function upsertArticle(env: Env, markdown: string) {
     throw new Error(`GitHub write failed (${write.status}): ${await write.text()}`);
   }
 
-  return { ...article, repoPath, unchanged: false };
+  return { unchanged: false };
+}
+
+async function upsertArticle(env: Env, markdown: string) {
+  const article = validateArticle(markdown);
+  const repoPath = `${ARTICLE_PATH}/${article.slug}.md`;
+  const result = await putGitHubContent(
+    env,
+    repoPath,
+    base64Encode(article.source),
+    `content: publish ${article.slug} via Telegram`,
+  );
+  return { ...article, repoPath, ...result };
 }
 
 async function telegramApi(env: Env, method: string, payload: Record<string, unknown>) {
@@ -234,19 +255,68 @@ async function telegramApi(env: Env, method: string, payload: Record<string, unk
   return data.result;
 }
 
+async function downloadTelegramFile(env: Env, document: TelegramDocument) {
+  const file = await telegramApi(env, 'getFile', { file_id: document.file_id }) as { file_path?: string };
+  if (!file.file_path) throw new Error('Telegram did not return a downloadable file path.');
+
+  const response = await fetch(`https://api.telegram.org/file/bot${env.TELEGRAM_BOT_TOKEN}/${file.file_path}`);
+  if (!response.ok) throw new Error(`Could not download file from Telegram (${response.status}).`);
+  return response;
+}
+
 async function downloadTelegramMarkdown(env: Env, document: TelegramDocument) {
   const fileName = document.file_name || '';
   if (!fileName.toLowerCase().endsWith('.md')) throw new Error('Upload a .md Markdown document.');
   if (document.file_size && document.file_size > MAX_MARKDOWN_BYTES) {
     throw new Error('Markdown file is larger than the 1 MB publishing limit.');
   }
-
-  const file = await telegramApi(env, 'getFile', { file_id: document.file_id }) as { file_path?: string };
-  if (!file.file_path) throw new Error('Telegram did not return a downloadable file path.');
-
-  const response = await fetch(`https://api.telegram.org/file/bot${env.TELEGRAM_BOT_TOKEN}/${file.file_path}`);
-  if (!response.ok) throw new Error(`Could not download Markdown from Telegram (${response.status}).`);
+  const response = await downloadTelegramFile(env, document);
   return response.text();
+}
+
+function imageExtension(fileName: string) {
+  const extension = fileName.toLowerCase().split('.').pop() || '';
+  return VALID_IMAGE_EXTENSIONS.has(extension) ? extension : undefined;
+}
+
+function sanitizeImageName(fileName: string, extension: string) {
+  const withoutExtension = fileName.slice(0, -(extension.length + 1));
+  const safeBase = withoutExtension
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'image';
+  return `${safeBase}.${extension === 'jpeg' ? 'jpg' : extension}`;
+}
+
+async function uploadImage(env: Env, document: TelegramDocument) {
+  const originalName = document.file_name || '';
+  const extension = imageExtension(originalName);
+  if (!extension) throw new Error('Supported images: PNG, JPG, WEBP, GIF or AVIF sent as a Telegram document.');
+  if (document.file_size && document.file_size > MAX_IMAGE_BYTES) {
+    throw new Error('Image is larger than the 4 MB publishing limit.');
+  }
+
+  const response = await downloadTelegramFile(env, document);
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (bytes.byteLength > MAX_IMAGE_BYTES) throw new Error('Image is larger than the 4 MB publishing limit.');
+
+  const now = new Date();
+  const year = String(now.getUTCFullYear());
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+  const safeName = sanitizeImageName(originalName, extension);
+  const repoPath = `${UPLOAD_PATH}/${year}/${month}/${safeName}`;
+  const publicPath = `/uploads/${year}/${month}/${safeName}`;
+  const result = await putGitHubContent(
+    env,
+    repoPath,
+    bytesToBase64(bytes),
+    `media: upload ${safeName} via Telegram`,
+  );
+
+  return { repoPath, publicPath, fileName: safeName, ...result };
 }
 
 async function sendFeedback(env: Env, message: TelegramMessage, text: string) {
@@ -298,7 +368,7 @@ async function handleTelegram(request: Request, env: Env) {
   try {
     const text = message.text?.trim();
     if (text === '/help' || text === '/start') {
-      await sendFeedback(env, message, 'DigiPlain publisher: send a .md file with valid frontmatter, or paste Markdown beginning with ---. Use /template for the required fields.');
+      await sendFeedback(env, message, 'DigiPlain publisher: send a .md file or paste Markdown beginning with ---. Send PNG/JPG/WEBP/GIF/AVIF images as documents to store screenshots. Use /template for the article fields.');
       return json({ ok: true, command: 'help' });
     }
     if (text === '/template') {
@@ -306,23 +376,40 @@ async function handleTelegram(request: Request, env: Env) {
       return json({ ok: true, command: 'template' });
     }
 
-    let markdown: string;
-    if (message.document) markdown = await downloadTelegramMarkdown(env, message.document);
-    else if (text?.startsWith('---')) markdown = message.text!;
-    else {
-      await sendFeedback(env, message, 'Nothing published. Send a .md file or paste Markdown that begins with YAML frontmatter (---).');
-      return json({ ok: true, ignored: true, reason: 'unsupported-message' });
+    if (message.document) {
+      const fileName = message.document.file_name || '';
+      if (fileName.toLowerCase().endsWith('.md')) {
+        const markdown = await downloadTelegramMarkdown(env, message.document);
+        const result = await upsertArticle(env, markdown);
+        const action = result.unchanged ? 'Already current' : result.status === 'draft' ? 'Draft saved' : 'Published';
+        const location = result.status === 'draft' ? result.repoPath : `/${result.category}/${result.slug}/`;
+        await sendFeedback(env, message, `✅ ${action}: ${result.title}\n${location}`);
+        return json({ ok: true, article: result.slug, status: result.status, unchanged: result.unchanged });
+      }
+
+      if (imageExtension(fileName)) {
+        const image = await uploadImage(env, message.document);
+        const action = image.unchanged ? 'Image already current' : 'Image uploaded';
+        await sendFeedback(env, message, `✅ ${action}\n${image.publicPath}\n\nMarkdown:\n![Describe this image](${image.publicPath})`);
+        return json({ ok: true, image: image.publicPath, unchanged: image.unchanged });
+      }
+
+      throw new Error('Unsupported document. Send a .md article or a PNG/JPG/WEBP/GIF/AVIF image.');
     }
 
-    const result = await upsertArticle(env, markdown);
-    const action = result.unchanged ? 'Already current' : result.status === 'draft' ? 'Draft saved' : 'Published';
-    const location = result.status === 'draft' ? result.repoPath : `/${result.category}/${result.slug}/`;
-    await sendFeedback(env, message, `✅ ${action}: ${result.title}\n${location}`);
-    return json({ ok: true, article: result.slug, status: result.status, unchanged: result.unchanged });
+    if (text?.startsWith('---')) {
+      const result = await upsertArticle(env, message.text!);
+      const action = result.unchanged ? 'Already current' : result.status === 'draft' ? 'Draft saved' : 'Published';
+      const location = result.status === 'draft' ? result.repoPath : `/${result.category}/${result.slug}/`;
+      await sendFeedback(env, message, `✅ ${action}: ${result.title}\n${location}`);
+      return json({ ok: true, article: result.slug, status: result.status, unchanged: result.unchanged });
+    }
+
+    await sendFeedback(env, message, 'Nothing published. Send a .md article, a supported image document, or pasted Markdown beginning with ---.');
+    return json({ ok: true, ignored: true, reason: 'unsupported-message' });
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'Unknown publisher error.';
     try { await sendFeedback(env, message, `❌ Not published: ${detail}`); } catch { /* feedback is best-effort */ }
-    // Acknowledge the Telegram update so malformed Markdown is not retried repeatedly.
     return json({ ok: false, error: detail });
   }
 }
