@@ -9,13 +9,15 @@ const categories = {
   internet: { title:'Internet guides', eyebrow:'Internet', description:'Mobile data, Wi-Fi, MTN, Airtel, hotspots and network problems explained in plain language.' },
   nigeria: { title:'Nigeria digital guides', eyebrow:'Nigeria', description:'Clear instructions for online services and digital processes Nigerians need repeatedly.' },
   explained: { title:'Explained simply', eyebrow:'Explained', description:'Internet language, digital concepts and trending terms explained without unnecessary jargon.' }
-};
+} as const;
+
+type Category = keyof typeof categories;
 
 export function getStaticPaths() {
-  return Object.keys(categories).map(category => ({ params:{ category } }));
+  return (Object.keys(categories) as Category[]).map(category => ({ params:{ category } }));
 }
 
-const { category } = Astro.params;
+const category = Astro.params.category as Category;
 const meta = categories[category];
 const articles = (await getCollection('articles', ({ data }) => data.status === 'published' && data.category === category)).sort((a,b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
 const topics = [...new Set(articles.map(a => a.data.topic))].sort();
