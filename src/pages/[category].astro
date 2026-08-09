@@ -23,7 +23,7 @@ const meta = categories[category];
 const articles = (await getCollection('articles', ({ data }) => data.status === 'published' && data.category === category)).sort((a,b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
 const topics = [...new Set(articles.map(a => a.data.topic))].sort();
 ---
-<BaseLayout title={`${meta.title} | DigiPlain`} description={meta.description}>
+<BaseLayout title={`${meta.title} | Sabi Update`} description={meta.description}>
   <header class="page-hero container">
     <div class="breadcrumbs"><a href="/">Home</a><span>›</span>{meta.eyebrow}</div>
     <span class="eyebrow">{meta.eyebrow}</span>
