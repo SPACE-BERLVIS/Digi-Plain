@@ -23,8 +23,8 @@ const searchExamples = [
 const orgSchema = {
   '@context':'https://schema.org',
   '@type':'Organization',
-  name:'DigiPlain',
-  url: Astro.site?.toString() || 'https://digiplain.invalid',
+  name:'Sabi Update',
+  url: Astro.site?.toString() || 'https://sabiupdate.invalid',
   description:'Clear, verified guides for phones, apps, internet services and everyday digital life.'
 };
 ---
@@ -36,7 +36,7 @@ const orgSchema = {
         <h1>Find the answer.<br/><span>Get on with your day.</span></h1>
         <p class="hero-copy">Clear, practical answers for the phones, apps, networks and online services you use every day. Written to solve the problem before wasting your time.</p>
         <form class="hero-search" action="/search/" method="get" role="search">
-          <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search DigiPlain" />
+          <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search Sabi Update" />
           <button type="submit">Search guides</button>
         </form>
         <div class="search-examples" aria-label="Popular searches">
@@ -45,7 +45,7 @@ const orgSchema = {
         </div>
       </div>
       <aside class="hero-note">
-        <span class="eyebrow">The DigiPlain standard</span>
+        <span class="eyebrow">The Sabi Update standard</span>
         <strong>Answer first.</strong>
         <p class="muted">No long introductions before the solution. Changing guides show when they were updated or verified.</p>
         <a class="text-link" href="/editorial-policy/">How we verify guides <span aria-hidden="true">↗</span></a>
@@ -53,7 +53,7 @@ const orgSchema = {
     </div>
   </section>
 
-  <section class="topic-strip-section" aria-label="Browse DigiPlain categories">
+  <section class="topic-strip-section" aria-label="Browse Sabi Update categories">
     <div class="container topic-strip">
       {topics.map((topic) => (
         <a class:list={['topic-strip-item', `topic-strip-item--${topic.tone}`]} href={topic.path}>
@@ -92,7 +92,7 @@ const orgSchema = {
   <section class="section manifesto-section">
     <div class="container manifesto-grid">
       <div>
-        <span class="eyebrow">Why DigiPlain exists</span>
+        <span class="eyebrow">Why Sabi Update exists</span>
         <h2>The internet has enough content. It needs clearer answers.</h2>
       </div>
       <div class="manifesto-copy">
