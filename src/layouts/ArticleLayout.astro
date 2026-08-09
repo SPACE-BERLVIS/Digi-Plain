@@ -1,12 +1,46 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
-const { article } = Astro.props;
+import ArticleCard from '../components/ArticleCard.astro';
+
+const { article, headings = [] } = Astro.props;
 const d = article.data;
 const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
 const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
 const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
 const featuredImageUrl = new URL(coverImage, site).toString();
+const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;
+const readingMinutes = Math.max(1, Math.ceil(words / 220));
+const toc = headings.filter((heading: { depth: number }) => heading.depth === 2).slice(0, 12);
+
+const currentTags = new Set(d.tags.map((tag: string) => tag.toLowerCase()));
+const allArticles = await getCollection('articles', ({ data }) => data.status === 'published');
+const ranked = allArticles
+  .filter((candidate) => candidate.data.slug !== d.slug)
+  .map((candidate) => {
+    let score = 0;
+    if (candidate.data.topic.toLowerCase() === d.topic.toLowerCase()) score += 5;
+    if (candidate.data.category === d.category) score += 3;
+    for (const tag of candidate.data.tags) {
+      if (currentTags.has(tag.toLowerCase())) score += 1;
+    }
+    return { candidate, score };
+  })
+  .sort((a, b) => b.score - a.score || b.candidate.data.updatedAt.valueOf() - a.candidate.data.updatedAt.valueOf());
+
+const related = ranked.filter(({ score }) => score > 0).slice(0, 3).map(({ candidate }) => candidate);
+if (related.length < 3) {
+  const used = new Set(related.map((candidate) => candidate.data.slug));
+  for (const { candidate } of ranked) {
+    if (related.length >= 3) break;
+    if (!used.has(candidate.data.slug)) {
+      related.push(candidate);
+      used.add(candidate.data.slug);
+    }
+  }
+}
+
 const schema = {
   '@context': 'https://schema.org',
   '@type': 'Article',
@@ -37,60 +71,63 @@ const schema = {
     <div class="article-meta">
       <span>By {d.author}</span>
       <span>Published {d.publishedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>
-      <span>Updated {d.updatedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>
-      {d.verifiedAt && <span>Verified {d.verifiedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>}
+    </div>
+    <div class="article-trust" aria-label="Article freshness">
+      <span class="trust-badge">{d.verifiedAt ? 'Verified' : 'Updated'}</span>
+      <span>{(d.verifiedAt || d.updatedAt).toLocaleDateString('en-NG', { day:'numeric', month:'short', year:'numeric' })}</span>
+      <span class="trust-divider" aria-hidden="true">·</span>
+      <span>{readingMinutes} min read</span>
+      {d.sourceNote && <><span class="trust-divider" aria-hidden="true">·</span><span>Official sources checked</span></>}
     </div>
   </header>
+
   <figure class="article-featured-image">
     <img src={coverImage} alt={coverImageAlt} loading="eager" fetchpriority="high" />
   </figure>
+
   <div class="article-shell">
     <article class="article-body">
       <slot />
-      <div class="ad-slot" aria-label="Advertisement placeholder">Advertisement</div>
-      <div class="answer-box">
+      <div class="answer-box article-feedback">
         <strong>Was this guide helpful?</strong>
-        <p class="muted" style="margin:6px 0 0">If a step has changed, tell us through the corrections page. We review practical guides for freshness.</p>
+        <p class="muted">If a step has changed, tell us through the corrections page. We review practical guides for freshness.</p>
       </div>
     </article>
+
     <aside class="article-sidebar">
+      {toc.length > 0 && (
+        <>
+          <nav class="toc toc-desktop" aria-label="On this page">
+            <div class="sidebar-label">On this page</div>
+            {toc.map((heading: { slug: string; text: string }) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
+          </nav>
+          <details class="toc-mobile">
+            <summary><span>Jump to section</span><span aria-hidden="true">+</span></summary>
+            <nav aria-label="Jump to section">
+              {toc.map((heading: { slug: string; text: string }) => <a href={`#${heading.slug}`}>{heading.text}</a>)}
+            </nav>
+          </details>
+        </>
+      )}
       <div class="sidebar-box">
-        <strong>More on DigiPlain</strong>
+        <div class="sidebar-label">More on DigiPlain</div>
         <a href={`/${d.category}/`}>Browse {d.category}</a>
         <a href="/search/">Search all guides</a>
         <a href="/editorial-policy/">How we verify guides</a>
       </div>
     </aside>
   </div>
+
+  {related.length > 0 && (
+    <section class="related-section">
+      <div class="container">
+        <div class="section-head section-head-rule">
+          <div><span class="eyebrow">Keep solving</span><h2>Related guides.</h2></div>
+        </div>
+        <div class="grid three related-grid">
+          {related.map((candidate) => <ArticleCard article={candidate} />)}
+        </div>
+      </div>
+    </section>
+  )}
 </BaseLayout>
-
-<style is:global>
-  .article-body a {
-    color: var(--brand);
-    font-weight: 650;
-    text-decoration-line: underline;
-    text-decoration-thickness: 0.08em;
-    text-decoration-color: color-mix(in srgb, var(--brand) 55%, transparent);
-    text-underline-offset: 0.18em;
-    transition: color .15s ease, text-decoration-color .15s ease, background-color .15s ease;
-  }
-
-  .article-body a:hover {
-    color: color-mix(in srgb, var(--brand) 78%, var(--ink));
-    text-decoration-color: currentColor;
-    background: var(--brand-soft);
-  }
-
-  .article-body a:focus-visible {
-    outline: 3px solid var(--brand-soft);
-    outline-offset: 3px;
-    border-radius: 4px;
-  }
-
-  .article-body a[href^="http"]::after {
-    content: " ↗";
-    font-size: .78em;
-    font-weight: 800;
-    text-decoration: none;
-  }
-</style>
