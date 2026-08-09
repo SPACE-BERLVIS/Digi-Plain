@@ -19,7 +19,7 @@ const articles = defineCollection({
     featuredImage: z.string().startsWith('/uploads/').optional(),
     featuredImageAlt: z.string().min(1).max(180).optional(),
     status: z.enum(['published', 'draft']).default('published'),
-    author: z.string().default('DigiPlain Editorial'),
+    author: z.string().default('Sabi Update Editorial'),
     sourceNote: z.string().optional()
   }).superRefine((data, ctx) => {
     if (data.featuredImage && !data.featuredImageAlt) {
