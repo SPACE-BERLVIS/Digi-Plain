@@ -19,7 +19,7 @@ const secondary = Array.from(
 const excludedSlugs = new Set<string>();
 if (lead) excludedSlugs.add(lead.data.slug);
 secondary.forEach((article) => excludedSlugs.add(article.data.slug));
-const recent = articles.filter((article) => !excludedSlugs.has(article.data.slug)).slice(0, 6);
+const recent = articles.filter((article) => !excludedSlugs.has(article.data.slug));
 
 const topics = [
   { name:'Phones', path:'/phones/', copy:'Device fixes and settings', label:'01', tone:'phones' },
@@ -119,14 +119,24 @@ const orgSchema = {
   )}
 
   {recent.length > 0 && (
-    <section class="section latest-section">
+    <section class="section latest-section" data-guide-feed>
       <div class="container">
         <div class="section-head section-head-rule">
           <div><span class="eyebrow">Recently updated</span><h2>Fresh answers.</h2></div>
-          <a class="button secondary" href="/search/">View all guides</a>
+          <a class="button secondary" href="/guides/">View all guides</a>
         </div>
-        <div class="latest-grid">
-          {recent.map((article) => <ArticleCard article={article} variant="row" />)}
+        <div class="latest-grid" data-guide-feed-grid>
+          {recent.map((article, index) => (
+            <div class="latest-feed-item" data-guide-feed-item hidden={index >= 10}>
+              <ArticleCard article={article} variant="row" />
+            </div>
+          ))}
+        </div>
+        <div class="guide-feed-actions">
+          <button class="button secondary guide-feed-more" type="button" data-guide-feed-more hidden>
+            Show more guides
+          </button>
+          <span class="guide-feed-count" data-guide-feed-count aria-live="polite"></span>
         </div>
       </div>
     </section>
@@ -145,3 +155,101 @@ const orgSchema = {
     </div>
   </section>
 </BaseLayout>
+
+<script is:inline>
+  (() => {
+    const feed = document.querySelector('[data-guide-feed]');
+    if (!feed) return;
+
+    const items = Array.from(feed.querySelectorAll('[data-guide-feed-item]'));
+    const moreButton = feed.querySelector('[data-guide-feed-more]');
+    const count = feed.querySelector('[data-guide-feed-count]');
+    if (!items.length || !moreButton) return;
+
+    let visibleLimit = 10;
+    let expanded = false;
+    let resizeTimer;
+
+    const getFeedConfig = () => {
+      if (window.matchMedia('(max-width: 640px)').matches) {
+        return { initial: 10, step: 6 };
+      }
+      if (window.matchMedia('(max-width: 1100px)').matches) {
+        return { initial: 14, step: 8 };
+      }
+      return { initial: 18, step: 10 };
+    };
+
+    const render = () => {
+      const { initial, step } = getFeedConfig();
+      visibleLimit = expanded ? Math.max(visibleLimit, initial) : initial;
+
+      items.forEach((item, index) => {
+        item.hidden = index >= visibleLimit;
+      });
+
+      const shown = Math.min(visibleLimit, items.length);
+      const remaining = Math.max(0, items.length - shown);
+      moreButton.hidden = remaining === 0;
+      moreButton.textContent = remaining > 0
+        ? `Show ${Math.min(step, remaining)} more guides`
+        : 'All guides shown';
+
+      if (count) {
+        count.textContent = `${shown} of ${items.length} recent guides shown`;
+      }
+    };
+
+    moreButton.addEventListener('click', () => {
+      const { step } = getFeedConfig();
+      expanded = true;
+      visibleLimit += step;
+      render();
+    });
+
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(render, 120);
+    });
+
+    render();
+  })();
+</script>
+
+<style is:global>
+  .latest-feed-item {
+    min-width: 0;
+  }
+
+  .latest-feed-item > .article-card {
+    height: 100%;
+  }
+
+  .guide-feed-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px 18px;
+    margin-top: 30px;
+  }
+
+  .guide-feed-count {
+    color: var(--muted);
+    font-size: .8rem;
+  }
+
+  @media (max-width: 640px) {
+    .guide-feed-actions {
+      align-items: stretch;
+      flex-direction: column;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .guide-feed-more {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
