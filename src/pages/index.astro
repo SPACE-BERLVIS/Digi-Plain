@@ -6,21 +6,6 @@ import ArticleCard from '../components/ArticleCard.astro';
 const articles = (await getCollection('articles', ({ data }) => data.status === 'published'))
   .sort((a, b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
 
-const featured = articles.filter((article) => article.data.featured);
-const lead = featured[0] || articles[0];
-const secondaryPool = [
-  ...featured.slice(1),
-  ...articles.filter((article) => article.data.slug !== lead?.data.slug),
-];
-const secondary = Array.from(
-  new Map(secondaryPool.map((article) => [article.data.slug, article])).values(),
-).slice(0, 3);
-
-const excludedSlugs = new Set<string>();
-if (lead) excludedSlugs.add(lead.data.slug);
-secondary.forEach((article) => excludedSlugs.add(article.data.slug));
-const recent = articles.filter((article) => !excludedSlugs.has(article.data.slug));
-
 const topics = [
   { name:'Phones', path:'/phones/', copy:'Device fixes and settings', label:'01', tone:'phones' },
   { name:'Apps', path:'/apps/', copy:'Everyday software guides', label:'02', tone:'apps' },
@@ -34,15 +19,6 @@ const searchExamples = [
   ['WhatsApp not downloading', 'WhatsApp not downloading'],
   ['Phone storage full', 'phone storage full'],
 ];
-
-const readMinutes = (article: typeof articles[number]) => {
-  const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.ceil(words / 220));
-};
-
-const leadHasManualImage = Boolean(lead?.data.featuredImage);
-const leadCover = lead ? lead.data.featuredImage || `/covers/${lead.data.slug}.svg?v=dark-1` : '';
-const leadCoverAlt = lead ? lead.data.featuredImageAlt || `DigiPlain cover for ${lead.data.title}` : '';
 
 const orgSchema = {
   '@context':'https://schema.org',
@@ -89,36 +65,7 @@ const orgSchema = {
     </div>
   </section>
 
-  {lead && (
-    <section class="section editorial-section">
-      <div class="container">
-        <div class="section-head section-head-rule">
-          <div><span class="eyebrow">The front page</span><h2>Useful right now.</h2></div>
-          <p class="muted">The most useful guide leads. The rest of the page behaves like an editorial desk, not an endless wall of identical cards.</p>
-        </div>
-
-        <div class="magazine-grid">
-          <a class="lead-story" href={`/${lead.data.category}/${lead.data.slug}/`}>
-            <div class:list={['lead-story-image', !leadHasManualImage && 'lead-story-image--generated']}>
-              <img src={leadCover} alt={leadCoverAlt} loading="eager" fetchpriority="high" />
-            </div>
-            <div class="lead-story-copy">
-              <div class="story-kicker"><span class="category-pill">{lead.data.category}</span><span>{lead.data.topic}</span></div>
-              <h2>{lead.data.title}</h2>
-              <p>{lead.data.description}</p>
-              <div class="story-meta"><span>{readMinutes(lead)} min read</span><span>Updated {lead.data.updatedAt.toLocaleDateString('en-NG', { month:'short', day:'numeric', year:'numeric' })}</span></div>
-            </div>
-          </a>
-
-          <div class="magazine-stack">
-            {secondary.map((article) => <ArticleCard article={article} variant="compact" />)}
-          </div>
-        </div>
-      </div>
-    </section>
-  )}
-
-  {recent.length > 0 && (
+  {articles.length > 0 && (
     <section class="section latest-section" data-guide-feed>
       <div class="container">
         <div class="section-head section-head-rule">
@@ -126,7 +73,7 @@ const orgSchema = {
           <a class="button secondary" href="/guides/">View all guides</a>
         </div>
         <div class="latest-grid" data-guide-feed-grid>
-          {recent.map((article, index) => (
+          {articles.map((article, index) => (
             <div class="latest-feed-item" data-guide-feed-item hidden={index >= 10}>
               <ArticleCard article={article} variant="row" />
             </div>
@@ -196,7 +143,7 @@ const orgSchema = {
         : 'All guides shown';
 
       if (count) {
-        count.textContent = `${shown} of ${items.length} recent guides shown`;
+        count.textContent = `${shown} of ${items.length} guides shown`;
       }
     };
 
