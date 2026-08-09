@@ -3,6 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 import '../styles/editorial-refinements.css';
+import '../styles/responsive.css';
 const {
   title = 'DigiPlain — Digital life, made simple',
   description = 'Clear, verified guides for phones, apps, internet services and everyday digital life.',
@@ -21,7 +22,7 @@ const imageUrl = image.startsWith('http') ? image : new URL(image, site).toStrin
 <html lang="en-NG">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
