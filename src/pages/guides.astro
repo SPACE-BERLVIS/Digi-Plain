@@ -1,0 +1,36 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+
+const articles = (await getCollection('articles', ({ data }) => data.status === 'published'))
+  .sort((a, b) => b.data.updatedAt.valueOf() - a.data.updatedAt.valueOf());
+---
+<BaseLayout
+  title="All DigiPlain Guides | DigiPlain"
+  description="Browse every DigiPlain guide for phones, apps, internet services, Nigeria digital life and simple explainers."
+>
+  <section class="page-hero">
+    <div class="container">
+      <div class="breadcrumbs"><a href="/">Home</a><span>›</span>Guides</div>
+      <span class="eyebrow">All guides</span>
+      <h1>Every answer, in one place.</h1>
+      <p>Browse all published DigiPlain guides, with the newest and most recently updated answers first.</p>
+    </div>
+  </section>
+
+  <section class="section latest-section">
+    <div class="container">
+      <div class="section-head section-head-rule">
+        <div>
+          <span class="eyebrow">Browse everything</span>
+          <h2>{articles.length} published guides.</h2>
+        </div>
+        <a class="button secondary" href="/search/">Search guides</a>
+      </div>
+      <div class="grid three">
+        {articles.map((article) => <ArticleCard article={article} />)}
+      </div>
+    </div>
+  </section>
+</BaseLayout>
