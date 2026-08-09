@@ -8,7 +8,7 @@ const d = article.data;
 const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
 const hasManualImage = Boolean(d.featuredImage);
-const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
+const coverImage = d.featuredImage || `/covers/${d.slug}.svg?v=dark-1`;
 const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
 const featuredImageUrl = new URL(coverImage, site).toString();
 const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;

@@ -2,7 +2,7 @@
 const { article, variant = 'standard' } = Astro.props;
 const d = article.data;
 const hasManualImage = Boolean(d.featuredImage);
-const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
+const coverImage = d.featuredImage || `/covers/${d.slug}.svg?v=dark-1`;
 const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
 const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.ceil(words / 220));
