@@ -1,0 +1,625 @@
+/*
+ * Responsive hardening layer.
+ * Loaded after the base and editorial styles so the site behaves predictably
+ * from small phones through tablets, laptops and wide desktop screens.
+ */
+
+html {
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body,
+main,
+.site-header,
+.site-footer {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.container,
+.reading,
+.hero-main,
+.hero-note,
+.magazine-grid > *,
+.magazine-stack > *,
+.latest-grid > *,
+.manifesto-grid > *,
+.article-shell > *,
+.footer-grid > * {
+  min-width: 0;
+}
+
+h1,
+h2,
+h3,
+.article-card h3,
+.breadcrumbs,
+.article-body {
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.article-body pre {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.article-body code {
+  overflow-wrap: anywhere;
+}
+
+.article-body table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-panel {
+  max-height: calc(100dvh - 88px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.nav-search-link,
+.mobile-menu {
+  flex: 0 0 auto;
+}
+
+.mobile-search input {
+  min-width: 0;
+}
+
+/* Keep generated covers at their native composition instead of stretching them. */
+.article-card-image--generated,
+.lead-story-image--generated,
+.article-featured-image--generated {
+  background: #111820;
+}
+
+.article-card-image--generated img,
+.lead-story-image--generated img,
+.article-featured-image--generated img {
+  object-fit: contain;
+}
+
+.lead-story-image--generated {
+  aspect-ratio: 1200 / 630;
+}
+
+/* Large laptops and narrow desktop windows. */
+@media (max-width: 1180px) {
+  .container {
+    width: min(100% - 36px, 1260px);
+  }
+
+  .nav {
+    gap: 18px;
+  }
+
+  .nav-links {
+    gap: 16px;
+  }
+
+  .nav-search {
+    width: 180px;
+  }
+
+  .hero-inner {
+    grid-template-columns: minmax(0, 1.35fr) minmax(240px, .65fr);
+    gap: 48px;
+  }
+
+  .magazine-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr);
+    gap: 24px;
+  }
+
+  .article-shell {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 48px;
+  }
+}
+
+/* Tablets and compact laptops: switch to the mobile header before it gets cramped. */
+@media (max-width: 980px) {
+  .nav {
+    gap: 10px;
+  }
+
+  .nav-links,
+  .nav-search {
+    display: none;
+  }
+
+  .nav-search-link {
+    display: flex;
+    margin-left: auto;
+  }
+
+  .mobile-menu {
+    display: block;
+  }
+
+  .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 38px;
+  }
+
+  .hero-note {
+    max-width: 720px;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 26px 0 0;
+  }
+
+  .magazine-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .magazine-stack {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .article-card--compact {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .article-card--compact .article-card-image {
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .article-card--compact .article-card-image--generated {
+    aspect-ratio: 1200 / 630;
+  }
+
+  .latest-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .article-shell {
+    width: min(760px, calc(100% - 36px));
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .article-sidebar {
+    position: static;
+    order: -1;
+  }
+
+  .toc-desktop,
+  .sidebar-box {
+    display: none;
+  }
+
+  .toc-mobile {
+    display: block;
+  }
+}
+
+/* Portrait tablets and large phones. */
+@media (max-width: 820px) {
+  .section {
+    padding: 68px 0;
+  }
+
+  .hero {
+    padding: 72px 0 50px;
+  }
+
+  .topic-strip {
+    display: flex;
+    width: 100%;
+    margin-inline: 0;
+    padding: 0 0 10px;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0;
+    scrollbar-width: none;
+  }
+
+  .topic-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topic-strip-item,
+  .topic-strip-item:first-child,
+  .topic-strip-item:last-child,
+  .topic-strip-item:nth-child(n + 4) {
+    flex: 0 0 min(250px, 76vw);
+    min-height: 104px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    scroll-snap-align: start;
+  }
+
+  .magazine-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .latest-grid,
+  .grid.three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .article-card--row {
+    grid-template-columns: 150px minmax(0, 1fr);
+  }
+
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Small tablets and mainstream phones. */
+@media (max-width: 640px) {
+  .container,
+  .reading {
+    width: calc(100% - 24px);
+  }
+
+  .nav {
+    height: 62px;
+  }
+
+  .hero {
+    padding: 56px 0 42px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.3rem, 10.8vw, 3.2rem);
+    line-height: 1.02;
+  }
+
+  .hero-copy {
+    margin-top: 20px;
+    font-size: 1rem;
+  }
+
+  .hero-search {
+    margin-top: 24px;
+  }
+
+  .hero-search input {
+    min-height: 52px;
+    padding-right: 16px;
+  }
+
+  .hero-search button {
+    position: static;
+    width: 100%;
+    min-height: 48px;
+    margin-top: 9px;
+  }
+
+  .section {
+    padding: 54px 0;
+  }
+
+  .section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .magazine-stack,
+  .latest-grid,
+  .grid.three,
+  .grid.two {
+    grid-template-columns: 1fr;
+  }
+
+  .lead-story-copy {
+    padding: 22px;
+  }
+
+  .lead-story h2 {
+    font-size: clamp(1.8rem, 8vw, 2.25rem);
+  }
+
+  .lead-story p {
+    font-size: .96rem;
+  }
+
+  .article-card--compact {
+    display: grid;
+    grid-template-columns: 118px minmax(0, 1fr);
+  }
+
+  .article-card--compact .article-card-image {
+    height: 100%;
+    aspect-ratio: auto;
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+  }
+
+  .article-card--compact .article-card-content {
+    padding: 14px;
+  }
+
+  .article-card--row {
+    grid-template-columns: 122px minmax(0, 1fr);
+    min-height: 150px;
+  }
+
+  .article-card--row .article-card-content {
+    padding: 16px;
+  }
+
+  .article-card--row p {
+    display: none;
+  }
+
+  .article-header {
+    padding: 48px 0 28px;
+  }
+
+  .article-header h1 {
+    font-size: clamp(2.1rem, 9.6vw, 3rem);
+    line-height: 1.04;
+  }
+
+  .article-dek {
+    margin-top: 18px;
+    font-size: 1rem;
+  }
+
+  .article-meta,
+  .article-trust {
+    row-gap: 8px;
+  }
+
+  .article-featured-image {
+    width: calc(100% - 24px);
+    margin-bottom: 28px;
+    border-radius: var(--radius);
+  }
+
+  .article-shell {
+    width: calc(100% - 24px);
+    gap: 32px;
+  }
+
+  .article-body {
+    font-size: 1rem;
+    line-height: 1.72;
+  }
+
+  .article-body h2 {
+    font-size: 1.6rem;
+  }
+
+  .article-body h3 {
+    font-size: 1.25rem;
+  }
+
+  .related-section {
+    padding: 54px 0 62px;
+  }
+
+  .page-hero,
+  .search-page {
+    padding-top: 52px;
+  }
+}
+
+/* Small phones: stop side-by-side cards from crushing text. */
+@media (max-width: 480px) {
+  .container,
+  .reading {
+    width: calc(100% - 24px);
+  }
+
+  .brand {
+    font-size: 1.02rem;
+  }
+
+  .nav-search-link,
+  .mobile-menu summary {
+    width: 38px;
+    height: 38px;
+  }
+
+  .mobile-panel {
+    right: 0;
+    width: min(420px, calc(100vw - 16px));
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .mobile-search {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-search button {
+    min-height: 44px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.15rem, 11vw, 2.75rem);
+  }
+
+  .search-examples {
+    gap: 7px 11px;
+  }
+
+  .topic-strip-item,
+  .topic-strip-item:first-child,
+  .topic-strip-item:last-child,
+  .topic-strip-item:nth-child(n + 4) {
+    flex-basis: min(250px, 84vw);
+  }
+
+  .section-head .button {
+    width: 100%;
+  }
+
+  .article-card--compact,
+  .article-card--row {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .article-card--compact .article-card-image,
+  .article-card--row .article-card-image {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .article-card--compact .article-card-image--generated,
+  .article-card--row .article-card-image--generated {
+    aspect-ratio: 1200 / 630;
+  }
+
+  .article-card--compact .article-card-content,
+  .article-card--row .article-card-content {
+    padding: 17px;
+  }
+
+  .article-card--compact h3,
+  .article-card--row h3 {
+    font-size: 1.05rem;
+  }
+
+  .article-card-footer {
+    justify-content: flex-start;
+  }
+
+  .article-header h1 {
+    font-size: clamp(2rem, 10vw, 2.55rem);
+  }
+
+  .article-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .article-trust {
+    align-items: flex-start;
+  }
+
+  .breadcrumbs {
+    line-height: 1.5;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Very narrow devices (320–360px). */
+@media (max-width: 360px) {
+  .container,
+  .reading,
+  .article-shell,
+  .article-featured-image {
+    width: calc(100% - 20px);
+  }
+
+  .nav {
+    height: 60px;
+    gap: 7px;
+  }
+
+  .brand {
+    font-size: .98rem;
+  }
+
+  .nav-search-link,
+  .mobile-menu summary {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-panel {
+    width: calc(100vw - 12px);
+    right: -2px;
+  }
+
+  .hero {
+    padding-top: 48px;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .hero-copy {
+    font-size: .96rem;
+  }
+
+  .section {
+    padding: 48px 0;
+  }
+
+  .topic-strip-item,
+  .topic-strip-item:first-child,
+  .topic-strip-item:last-child,
+  .topic-strip-item:nth-child(n + 4) {
+    flex-basis: 88vw;
+    padding: 17px 15px;
+  }
+
+  .lead-story-copy,
+  .article-card-content {
+    padding: 16px;
+  }
+
+  .article-header h1 {
+    font-size: 1.95rem;
+  }
+
+  .article-body h2 {
+    font-size: 1.48rem;
+  }
+
+  .article-body > blockquote:first-child {
+    padding: 16px;
+  }
+}
