@@ -9,17 +9,17 @@ const nav = [
 ---
 <header class="site-header">
   <div class="container nav">
-    <a class="brand" href="/" aria-label="DigiPlain home">Digi<b>Plain</b>.</a>
+    <a class="brand" href="/" aria-label="Sabi Update home">Sabi <b>Update</b>.</a>
 
     <nav class="nav-links" aria-label="Primary navigation">
       {nav.map(([label, href]) => <a href={href}>{label}</a>)}
     </nav>
 
     <form class="nav-search" action="/search/" method="get" role="search">
-      <input type="search" name="q" placeholder="Search DigiPlain" aria-label="Search DigiPlain" />
+      <input type="search" name="q" placeholder="Search Sabi Update" aria-label="Search Sabi Update" />
     </form>
 
-    <a class="nav-search-link" href="/search/" aria-label="Search DigiPlain">
+    <a class="nav-search-link" href="/search/" aria-label="Search Sabi Update">
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="11" cy="11" r="6.5"></circle>
         <path d="m16 16 4 4"></path>
@@ -32,13 +32,13 @@ const nav = [
       </summary>
       <div class="mobile-panel">
         <form class="mobile-search" action="/search/" method="get" role="search">
-          <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search DigiPlain" />
+          <input type="search" name="q" placeholder="What are you trying to fix?" aria-label="Search Sabi Update" />
           <button type="submit">Search</button>
         </form>
         <nav class="mobile-nav" aria-label="Mobile navigation">
           {nav.map(([label, href]) => <a href={href}><span>{label}</span><span aria-hidden="true">↗</span></a>)}
         </nav>
-        <a class="mobile-editorial" href="/editorial-policy/">How DigiPlain verifies guides</a>
+        <a class="mobile-editorial" href="/editorial-policy/">How Sabi Update verifies guides</a>
       </div>
     </details>
   </div>
