@@ -5,12 +5,13 @@ import ArticleCard from '../components/ArticleCard.astro';
 
 const { article, headings = [] } = Astro.props;
 const d = article.data;
-const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
+const site = Astro.site?.toString().replace(/\/$/, '') || 'https://sabiupdate.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
 const hasManualImage = Boolean(d.featuredImage);
 const coverImage = d.featuredImage || `/covers/${d.slug}.svg?v=dark-1`;
-const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
+const coverImageAlt = d.featuredImageAlt || `Sabi Update cover for ${d.title}`;
 const featuredImageUrl = new URL(coverImage, site).toString();
+const displayAuthor = d.author === 'DigiPlain Editorial' ? 'Sabi Update Editorial' : d.author;
 const words = (article.body || '').trim().split(/\s+/).filter(Boolean).length;
 const readingMinutes = Math.max(1, Math.ceil(words / 220));
 const toc = headings.filter((heading: { depth: number }) => heading.depth === 2).slice(0, 12);
@@ -51,12 +52,12 @@ const schema = {
   dateModified: d.updatedAt.toISOString(),
   mainEntityOfPage: url,
   image: [featuredImageUrl],
-  author: { '@type': 'Organization', name: d.author },
-  publisher: { '@type': 'Organization', name: 'DigiPlain', url: site }
+  author: { '@type': 'Organization', name: displayAuthor },
+  publisher: { '@type': 'Organization', name: 'Sabi Update', url: site }
 };
 ---
 <BaseLayout
-  title={`${d.title} | DigiPlain`}
+  title={`${d.title} | Sabi Update`}
   description={d.description}
   canonical={url}
   image={coverImage}
@@ -70,7 +71,7 @@ const schema = {
     <h1>{d.title}</h1>
     <p class="article-dek">{d.description}</p>
     <div class="article-meta">
-      <span>By {d.author}</span>
+      <span>By {displayAuthor}</span>
       <span>Published {d.publishedAt.toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })}</span>
     </div>
     <div class="article-trust" aria-label="Article freshness">
@@ -111,7 +112,7 @@ const schema = {
         </>
       )}
       <div class="sidebar-box">
-        <div class="sidebar-label">More on DigiPlain</div>
+        <div class="sidebar-label">More on Sabi Update</div>
         <a href={`/${d.category}/`}>Browse {d.category}</a>
         <a href="/search/">Search all guides</a>
         <a href="/editorial-policy/">How we verify guides</a>

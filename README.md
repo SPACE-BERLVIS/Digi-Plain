@@ -1,8 +1,8 @@
-# DigiPlain
+# Sabi Update
 
 **Digital life, made simple.**
 
-DigiPlain is a database-free, SEO-first static publication for practical answers about phones, apps, internet services, Nigerian digital processes and everyday technology.
+Sabi Update is a database-free, SEO-first static publication for practical answers about phones, apps, internet services, Nigerian digital processes and everyday technology.
 
 ## Architecture
 
@@ -44,7 +44,7 @@ Static output is written to `dist/`.
 
 Canonical URLs, RSS, sitemap entries and structured data come from the `SITE_URL` environment variable.
 
-CI uses `https://digiplain.invalid` only as a safe non-production build placeholder when no URL is configured. Production deployment is blocked until `SITE_URL` is set to a real HTTPS hostname.
+CI uses `https://sabiupdate.invalid` only as a safe non-production build placeholder when no URL is configured. Production deployment is blocked until `SITE_URL` is set to a real HTTPS hostname.
 
 For GitHub Actions, create a repository variable:
 

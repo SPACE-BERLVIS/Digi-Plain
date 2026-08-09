@@ -94,7 +94,7 @@ export const getStaticPaths = (async () => {
 
 export const GET: APIRoute = ({ props }) => {
   const slug = String(props.slug || 'guide');
-  const title = String(props.title || 'DigiPlain guide');
+  const title = String(props.title || 'Sabi Update guide');
   const topic = shortLabel(String(props.topic || 'Guide'));
   const category = String(props.category || 'explained');
   const theme = themes[category] || themes.explained;
@@ -108,14 +108,14 @@ export const GET: APIRoute = ({ props }) => {
 
   ${decoration(category, theme.accent, theme.panel, seed)}
 
-  <text x="72" y="104" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="1.8" fill="#f6f7fb">DigiPlain</text>
+  <text x="72" y="104" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" letter-spacing="1.8" fill="#f6f7fb">Sabi Update</text>
   <text x="72" y="154" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="2.6" fill="${theme.accent}">${escapeXml(theme.label)}</text>
 
   <text x="72" y="314" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="-2" fill="#f6f7fb">${escapeXml(theme.label)}</text>
   <text x="72" y="368" font-family="Arial, Helvetica, sans-serif" font-size="29" font-weight="600" fill="#b7bdc8">${escapeXml(topic)}</text>
 
   <line x1="72" y1="516" x2="748" y2="516" stroke="#ffffff" stroke-opacity=".12"/>
-  <text x="72" y="562" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.7" fill="#c7ccd5">DIGIPLAIN PRACTICAL GUIDE</text>
+  <text x="72" y="562" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="1.7" fill="#c7ccd5">SABI UPDATE PRACTICAL GUIDE</text>
   <text x="72" y="594" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="500" fill="#9198a5">Answer first. Get on with your day.</text>
 </svg>`;
 
