@@ -7,6 +7,7 @@ const { article, headings = [] } = Astro.props;
 const d = article.data;
 const site = Astro.site?.toString().replace(/\/$/, '') || 'https://digiplain.invalid';
 const url = `${site}/${d.category}/${d.slug}/`;
+const hasManualImage = Boolean(d.featuredImage);
 const coverImage = d.featuredImage || `/covers/${d.slug}.svg`;
 const coverImageAlt = d.featuredImageAlt || `DigiPlain cover for ${d.title}`;
 const featuredImageUrl = new URL(coverImage, site).toString();
@@ -81,7 +82,7 @@ const schema = {
     </div>
   </header>
 
-  <figure class="article-featured-image">
+  <figure class:list={['article-featured-image', !hasManualImage && 'article-featured-image--generated']}>
     <img src={coverImage} alt={coverImageAlt} loading="eager" fetchpriority="high" />
   </figure>
 

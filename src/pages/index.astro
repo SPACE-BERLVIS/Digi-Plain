@@ -40,6 +40,7 @@ const readMinutes = (article: typeof articles[number]) => {
   return Math.max(1, Math.ceil(words / 220));
 };
 
+const leadHasManualImage = Boolean(lead?.data.featuredImage);
 const leadCover = lead ? lead.data.featuredImage || `/covers/${lead.data.slug}.svg` : '';
 const leadCoverAlt = lead ? lead.data.featuredImageAlt || `DigiPlain cover for ${lead.data.title}` : '';
 
@@ -98,7 +99,7 @@ const orgSchema = {
 
         <div class="magazine-grid">
           <a class="lead-story" href={`/${lead.data.category}/${lead.data.slug}/`}>
-            <div class="lead-story-image">
+            <div class:list={['lead-story-image', !leadHasManualImage && 'lead-story-image--generated']}>
               <img src={leadCover} alt={leadCoverAlt} loading="eager" fetchpriority="high" />
             </div>
             <div class="lead-story-copy">
